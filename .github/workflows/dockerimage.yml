@@ -1,0 +1,22 @@
+name: Docker Image CI
+
+on: 
+  push:
+    branches:
+    - CItest
+      
+jobs:
+  container:
+    runs-on: ubuntu-latest
+    container: docker://tooldaq/tooldaqapplication:base
+    steps:
+      - uses: actions/checkout@v1
+      - run: | 
+         ls ./ -al
+         echo hello ben
+         ls ./ -al
+         source Setup.sh
+         make clean
+         make
+         
+          
