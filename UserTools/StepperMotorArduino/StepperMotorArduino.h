@@ -46,9 +46,11 @@ class StepperMotorArduino: public Tool {
   int n_motor; // Motor number set on Arduino
   int steps_per_unit; // Number of motor steps per chosen distance unit
   struct termios tty; // Termios struct, we call it 'tty' for convention
+  float curr_pos; // Current position of the motor
 
   bool ReadSerial(int serial_port, std::string &response);
   bool WriteSerial(int serial_port, std::string msg);
+  bool GetCurrentPosition(float &position);
 
 };
 
