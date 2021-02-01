@@ -48,8 +48,8 @@ class StepperMotorArduino: public Tool {
   struct termios tty; // Termios struct, we call it 'tty' for convention
   float curr_pos; // Current position of the motor
 
-  bool ReadSerial(int serial_port, std::string &response);
-  bool WriteSerial(int serial_port, std::string msg);
+  bool ReadSerial(std::string &response);
+  bool WriteSerial(std::string msg);
   bool GetCurrentPosition(float &position);
 
 };

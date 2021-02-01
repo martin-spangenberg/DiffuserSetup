@@ -60,12 +60,12 @@ bool StepperMotorArduino::Move(float pos)
 
   Log("StepperMotorArduino: Moving to position "+pos_str, 1, verbose);
   std::string command = std::to_string(n_motor)+" MV "+pos_str+"\n";
-  WriteSerial(serial_port, command);
+  WriteSerial(command);
 
   std::string output;
   while(true)
   {
-    ReadSerial(serial_port, output);
+    ReadSerial(output);
     Log("Serial output: "+output, 5, verbose);
     if (output.find("MOVE DONE") != std::string::npos) break;
   }
@@ -89,12 +89,12 @@ bool StepperMotorArduino::Home()
 {
   Log("StepperMotorArduino: Homing", 1, verbose);
   std::string command = std::to_string(n_motor)+" HOME\n";
-  WriteSerial(serial_port, command);
+  WriteSerial(command);
 
   std::string output;
   while(true)
   {
-    ReadSerial(serial_port, output);
+    ReadSerial(output);
     if (output.find("HOME DONE") != std::string::npos) break;
   }
 
@@ -107,9 +107,9 @@ bool StepperMotorArduino::SetZero()
 {
   Log("StepperMotorArduino: Setting current position to zero", 1, verbose);
   std::string command = std::to_string(n_motor)+" ZERO\n";
-  WriteSerial(serial_port, command);
+  WriteSerial(command);
   std::string response;
-  ReadSerial(serial_port, response);
+  ReadSerial(response);
 
   GetCurrentPosition(curr_pos);
 
@@ -121,9 +121,9 @@ bool StepperMotorArduino::SetStepsPerUnit(int steps)
   std::string steps_str = std::to_string(steps);
   Log("StepperMotorArduino: Setting steps per unit to "+steps_str, 1, verbose);
   std::string command = std::to_string(n_motor)+" SPU "+steps_str+"\n";
-  WriteSerial(serial_port, command);
+  WriteSerial(command);
   std::string response;
-  ReadSerial(serial_port, response);
+  ReadSerial(response);
 
   return true;
 }
@@ -131,14 +131,14 @@ bool StepperMotorArduino::SetStepsPerUnit(int steps)
 bool StepperMotorArduino::GetCurrentPosition(float &position)
 {
   std::string response;
-  WriteSerial(serial_port, std::to_string(n_motor)+" POS?\n");
-  ReadSerial(serial_port, response);
+  WriteSerial(std::to_string(n_motor)+" POS?\n");
+  ReadSerial(response);
   position = std::stof(response);
 
   return true;
 }
 
-bool StepperMotorArduino::WriteSerial(int serial_port, std::string msg)
+bool StepperMotorArduino::WriteSerial(std::string msg)
 {
   usleep(100000);
   int len = msg.length();
@@ -149,7 +149,7 @@ bool StepperMotorArduino::WriteSerial(int serial_port, std::string msg)
   return true;
 }
 
-bool StepperMotorArduino::ReadSerial(int serial_port, std::string &response)
+bool StepperMotorArduino::ReadSerial(std::string &response)
 {
   char read_buf[512]; // Allocate memory for read buffer
   response = "";
