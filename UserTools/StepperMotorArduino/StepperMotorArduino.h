@@ -47,7 +47,7 @@ class StepperMotorArduino: public Tool {
   int steps_per_unit; // Number of motor steps per chosen distance unit
   struct termios tty; // Termios struct, we call it 'tty' for convention
 
-  std::string ReadSerial(int serial_port);
+  bool ReadSerial(int serial_port, std::string &response);
   bool WriteSerial(int serial_port, std::string msg);
 
 };

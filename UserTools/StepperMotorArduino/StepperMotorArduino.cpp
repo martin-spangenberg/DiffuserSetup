@@ -31,7 +31,6 @@ bool StepperMotorArduino::Execute()
   Home();
   SetZero();
   Move(30.0);
-  MoveRelative(10.5);
 
   return true;
 }
@@ -54,8 +53,9 @@ bool StepperMotorArduino::Move(float pos)
   std::string output;
   while(true)
   {
-      output = ReadSerial(serial_port);
-      if (output.find("MOVE DONE") != std::string::npos) break;
+    ReadSerial(serial_port, output);
+    Log("Serial output: "+output, 1, verbose);
+    if (output.find("MOVE DONE") != std::string::npos) break;
   }
 
   return true;
@@ -71,8 +71,9 @@ bool StepperMotorArduino::MoveRelative(float dist)
   std::string output;
   while(true)
   {
-      output = ReadSerial(serial_port);
-      if (output.find("MOVE DONE") != std::string::npos) break;
+    ReadSerial(serial_port, output);
+    Log("Serial output: "+output, 5, verbose);
+    if (output.find("MOVE DONE") != std::string::npos) break;
   }
 
   return true;
@@ -87,7 +88,7 @@ bool StepperMotorArduino::Home()
   std::string output;
   while(true)
   {
-    output = ReadSerial(serial_port);
+    ReadSerial(serial_port, output);
     if (output.find("HOME DONE") != std::string::npos) break;
   }
 
@@ -113,9 +114,8 @@ bool StepperMotorArduino::SetStepsPerUnit(int steps)
   return true;
 }
 
-bool StepperMotorArduino::WriteSerial (int serial_port, std::string msg)
+bool StepperMotorArduino::WriteSerial(int serial_port, std::string msg)
 {
-  usleep(100000);
   int len = msg.length();
   char msg_cstr[len];
   strcpy(msg_cstr, msg.c_str());
@@ -123,25 +123,36 @@ bool StepperMotorArduino::WriteSerial (int serial_port, std::string msg)
   return true;
 }
 
-std::string StepperMotorArduino::ReadSerial (int serial_port)
+bool StepperMotorArduino::ReadSerial(int serial_port, std::string &response)
 {
-  usleep(100000);
   char read_buf[512]; // Allocate memory for read buffer
-  memset(&read_buf, '\0', sizeof(read_buf));
-  int num_bytes = read(serial_port, &read_buf, sizeof(read_buf));
+  response = "";
 
-  std::string response = "";
-  if (num_bytes > 0)
+  while(true)
   {
-    response += std::string(read_buf);
-  }
-  else if (num_bytes < 0)
-  {
-    std::string error_text = strerror(errno);
-    Log("StepperMotorArduino: Error reading: "+error_text, 1, verbose);
+    usleep(1000);
+    memset(&read_buf, '\0', sizeof(read_buf));
+    int num_bytes = read(serial_port, &read_buf, sizeof(read_buf));
+    
+    if (num_bytes > 0)
+    {
+      response += std::string(read_buf);
+    }
+    else if (num_bytes < 0)
+    {
+      std::string error_text = strerror(errno);
+      Log("StepperMotorArduino: Error reading: "+error_text, 1, verbose);
+      return false;
+    }
+
+    if (response.find("\n") != std::string::npos)
+    {
+      if (response[response.length()-1] == '\n') response.erase(response.length()-1);
+      break;
+    }
   }
 
-  return response;
+  return true;
 }
 
 bool StepperMotorArduino::EstablishUSB()
