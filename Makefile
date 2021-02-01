@@ -1,6 +1,6 @@
 ToolDAQPath=ToolDAQ
 
-CXXFLAGS= -fPIC -O3 -Wpedantic # -g -DDEBUG
+CXXFLAGS= -std=c++11 -fPIC -O3 -Wpedantic # -g -DDEBUG
 
 ZMQLib= -L $(ToolDAQPath)/zeromq-4.0.7/lib -lzmq 
 ZMQInclude= -I $(ToolDAQPath)/zeromq-4.0.7/include/ 
