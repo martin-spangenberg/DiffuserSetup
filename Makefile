@@ -11,8 +11,8 @@ BoostInclude= -I $(ToolDAQPath)/boost_1_66_0/install/include
 DataModelInclude = 
 DataModelLib = 
 
-MyToolsInclude =
-MyToolsLib = 
+MyToolsInclude = -I ../../ximc/ -I ../../ximc/macosx
+MyToolsLib = -L ../../ximc/macosx -lximc
 
 all: lib/libStore.so lib/libLogging.so lib/libDataModel.so include/Tool.h lib/libMyTools.so lib/libServiceDiscovery.so lib/libToolChain.so main RemoteControl  NodeDaemon
 
