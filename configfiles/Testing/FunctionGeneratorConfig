@@ -1,0 +1,8 @@
+verbose          1
+IPaddress        192.168.1.5  # IP address of device on the network
+channel          1            # Output channel (1 or 2)
+shape            SQUARE       # Function shape (SINUSOID, SQUARE, RAMP, PULSE)
+cycles           100          # Number of function cycles in a burst
+frequency        1000         # Function frequency [Hz]
+Vmin             0.0          # Minimum function voltage [V]
+Vmax             5.0          # Maximum function voltage [V]
