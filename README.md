@@ -3,16 +3,12 @@
 This software controls the HyperK diffuser DAQ system. It is based on the ToolDAQ framework[1].
 
 ****************************
-#Setup
+# Setup
 ****************************
 
 After cloning this repository, run the command ./GetToolDAQ.sh
 
 This fetches the main ToolDAQ framework and compiles it. Compilation requires the g++ compiler to be installed on your system.
-
-The Tool StepperMotorStanda depends on the libximc library: http://files.xisupport.com/libximc/libximc-2.12.5-all.tar.gz
-
-Once downloaded, find the subfolder in ximc/ relevant for your distro and install the main library (starts with libximc7) and the developer additions (libximc7-dev...). 
 
 For more information on ToolDAQ, consult the ToolDAQ documentation:
 

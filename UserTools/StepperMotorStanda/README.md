@@ -1,6 +1,9 @@
 # StepperMotorStanda
 
-StepperMotorStanda
+This Tool depends on the libximc library: http://files.xisupport.com/libximc/libximc-2.12.5-all.tar.gz
+
+Once downloaded, find the subfolder in ximc/ relevant for your distro and install the main library (starts with libximc7) and the developer additions (libximc7-dev...). 
+
 
 ## Data
 
