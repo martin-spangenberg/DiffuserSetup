@@ -187,13 +187,16 @@ bool FunctionGenerator::ReadVISA(std::string &response)
 {
   ViStatus status = viRead(m_instrument, (unsigned char*)buffer, buffer_size_B, &io_bytes);
 
-  // Response is not null-terminated. Add '\0' at end.
-  if (io_bytes < buffer_size_B)
-    buffer[io_bytes] = '\0';
+  if(CheckStatus(status))
+  {
+    if (io_bytes < buffer_size_B) // Response is not null-terminated. Add '\0' at end.
+      buffer[io_bytes] = '\0';
+    else
+      buffer[buffer_size_B] = '\0';
+
+    response = std::string(buffer);
+    return true;
+  }
   else
-    buffer[buffer_size_B] = '\0';
-
-  response = std::string(buffer);
-
-  return CheckStatus(status);
+    return false;
 }
