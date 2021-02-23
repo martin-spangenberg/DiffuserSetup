@@ -40,12 +40,18 @@ bool FunctionGenerator::Initialise(std::string configfile, DataModel &data)
 bool FunctionGenerator::Execute()
 {
   // Test of trigger: 10 bursts, one every 2 seconds
-  sleep(2);
-  for (int i=0; i<10; ++i)
-  {
-    SendTrigger();
-    sleep(2);
-  }
+  // sleep(2);
+  // for (int i=0; i<10; ++i)
+  // {
+  //   SendTrigger();
+  //   sleep(2);
+  // }
+
+  std::string response;
+  WriteVISA("*IDN?");
+  ReadVISA(response);
+
+  Log("Response = " + response, 1, m_verbose);
 
   return true;
 }
@@ -174,5 +180,20 @@ bool FunctionGenerator::WriteVISA(std::string command_str)
   ViBuf command_vibuf = (unsigned char*)command_cstr;
   ViStatus status = viWrite(m_instrument, command_vibuf, (ViUInt32)strlen((const char*)command_vibuf), &io_bytes);
   
+  return CheckStatus(status);
+}
+
+bool FunctionGenerator::ReadVISA(std::string &response)
+{
+  ViStatus status = viRead(m_instrument, (unsigned char*)buffer, buffer_size_B, &io_bytes);
+
+  // Response is not null-terminated. Add '\0' at end.
+  if (io_bytes < buffer_size_B)
+    buffer[io_bytes] = '\0';
+  else
+    buffer[buffer_size_B] = '\0';
+
+  response = std::string(buffer);
+
   return CheckStatus(status);
 }

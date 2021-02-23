@@ -39,6 +39,7 @@ class FunctionGenerator: public Tool {
 
   bool CheckStatus(ViStatus status);
   bool WriteVISA(std::string command_str);
+  bool ReadVISA(std::string &response);
 
   int m_verbose; // Verbosity
   std::string m_IPaddress; // IP address of instrument
