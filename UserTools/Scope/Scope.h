@@ -1,20 +1,19 @@
 #ifndef Scope_H
 #define Scope_H
 
+#include "visa.h"
 #include <string>
 #include <iostream>
+#include <unistd.h>
 
 #include "Tool.h"
 
 
 /**
- * \class Scope
- *
- * This is a balnk template for a Tool used by the script to generate a new custom tool. Please fill out the descripton and author information.
+* \class Scope
 *
-* $Author: B.Richards $
-* $Date: 2019/05/28 10:44:00 $
-* Contact: b.richards@qmul.ac.uk
+* Author: Martin Spangenberg
+* Contact: m.spangenberg.1@warwick.ac.uk
 */
 class Scope: public Tool {
 
@@ -22,16 +21,29 @@ class Scope: public Tool {
  public:
 
   Scope(); ///< Simple constructor
-  bool Initialise(std::string configfile,DataModel &data); ///< Initialise Function for setting up Tool resorces. @param configfile The path and name of the dynamic configuration file to read in. @param data A reference to the transient data class used to pass information between Tools.
-  bool Execute(); ///< Executre function used to perform Tool perpose. 
-  bool Finalise(); ///< Finalise funciton used to clean up resorces.
+  bool Initialise(std::string configfile,DataModel &data); ///< Initialise Function for setting up Tool resources. @param configfile The path and name of the dynamic configuration file to read in. @param data A reference to the transient data class used to pass information between Tools.
+  bool Execute(); ///< Execute function used to perform Tool perpose. 
+  bool Finalise(); ///< Finalise function used to clean up resources.
 
+  bool InitSetup(); // Initial setup parameters
+  bool SendTrigger();
+  bool EstablishConnection();
 
  private:
 
+  bool CheckStatus(ViStatus status);
+  bool WriteVISA(std::string command_str);
+  bool ReadVISA(std::string &response);
 
+  int m_verbose; // Verbosity
+  std::string m_IPaddress; // IP address of instrument
+  ViSession m_resource_manager;
+  ViSession m_instrument; // VISA instrument reference
 
-
+  // Communication buffers
+  const ViUInt32 buffer_size_B = 1000;
+  ViChar buffer[1000];
+  ViUInt32 io_bytes;
 
 };
 
