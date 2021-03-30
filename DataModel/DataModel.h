@@ -13,7 +13,7 @@
 #include "Utilities.h"
 
 #include "TFile.h"
-#include "DfTree.h"
+//#include "DfTree.h"
 
 #include <zmq.hpp>
 
@@ -33,17 +33,17 @@ class DataModel {
   
   DataModel(); ///< Simple constructor
 
-  DfTree* GetDfTree(std::string name);
-  void AddDfTree(std::string name, DfTree *tree);
-  void DeleteDfTree(std::string name);
-  int SizeDfTree();
+  //DfTree* GetDfTree(std::string name);
+  //void AddDfTree(std::string name, DfTree *tree);
+  //void DeleteDfTree(std::string name);
+  //int SizeDfTree();
 
 
   Store vars; ///< This Store can be used for any variables. It is an inefficent ascii based storage    
   BoostStore CStore; ///< This is a more efficent binary BoostStore that can be used to store a dynamic set of inter Tool variables.
   std::map<std::string,BoostStore*> Stores; ///< This is a map of named BooStore pointers which can be deffined to hold a nammed collection of any tipe of BoostStore. It is usefull to store data that needs subdividing into differnt stores.
 
-  std::map<std::string, DfTree*> m_dftrees;
+  //std::map<std::string, DfTree*> m_dftrees;
 
   Logging *Log; ///< Log class pointer for use in Tools, it can be used to send messages which can have multiple error levels and destination end points  
   zmq::context_t* context; ///< ZMQ contex used for producing zmq sockets for inter thread,  process, or computer communication
