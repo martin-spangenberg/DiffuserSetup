@@ -2,26 +2,34 @@
 
 DataModel::DataModel(){}
 
-/*
-TTree* DataModel::GetTTree(std::string name){
+DfTree* DataModel::GetDfTree(std::string name)
+{
+//  std::cout << "map size " << m_DfTrees.size() << std::endl;
+//  std::cout << "GETTING from map " << name << "." << std::endl;
+  if (m_dftrees.count(name))
+    return m_dftrees[name];
+  else
+    return 0;
+}
 
-  return m_trees[name];
-
+void DataModel::AddDfTree(std::string name, DfTree *tree)
+{
+  std::cout << "map size " << m_dftrees.size() << std::endl;
+  std::cout << "ADDING to map " << name << ",\t" << tree << "." << std::endl;
+  m_dftrees[name]=tree;
+  std::cout << m_dftrees[name] << std::endl;
 }
 
 
-void DataModel::AddTTree(std::string name,TTree *tree){
-
-  m_trees[name]=tree;
-
+void DataModel::DeleteDfTree(std::string name)
+{
+  std::cout << "map size " << m_dftrees.size() << std::endl;
+  std::cout << "REMOVING from map " << name << "." << std::endl;
+  delete m_dftrees[name];
+  m_dftrees.erase(name);
 }
 
-
-void DataModel::DeleteTTree(std::string name){
-
-  m_trees.erase(name);
-
+int DataModel::SizeDfTree()
+{
+  return m_dftrees.size();
 }
-
-*/
-
