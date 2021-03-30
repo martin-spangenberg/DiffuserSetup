@@ -5,6 +5,10 @@
 #include <string>
 #include <iostream>
 #include <unistd.h>
+#include <fstream>
+#include <stdint.h>
+#include <stdlib.h>
+#include <vector>
 
 #include "Tool.h"
 
@@ -28,6 +32,8 @@ class Scope: public Tool {
   bool InitSetup(); // Initial setup parameters
   bool SendTrigger();
   bool EstablishConnection();
+  bool GetDeltaT(float &deltaT);
+  bool GetWaveform(std::vector<float> &waveform);
 
  private:
 
@@ -41,8 +47,8 @@ class Scope: public Tool {
   ViSession m_instrument; // VISA instrument reference
 
   // Communication buffers
-  const ViUInt32 buffer_size_B = 1000;
-  ViChar buffer[1000];
+  const ViUInt32 buffer_size_B = 100000;
+  ViChar buffer[100000];
   ViUInt32 io_bytes;
 
 };

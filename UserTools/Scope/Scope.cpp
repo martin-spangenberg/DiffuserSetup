@@ -18,17 +18,30 @@ bool Scope::Initialise(std::string configfile, DataModel &data)
 
   if (EstablishConnection())
   {
+    InitSetup();  
     return true;
   }
   else
     return false;
-
-  return true;
 }
 
 bool Scope::Execute()
 {
+  //for (int i=0; i<100; ++i)
+  //{
+  //  SendTrigger();
+  //  sleep(1);
+  //}
 
+  sleep(30);
+  std::vector<float> waveform;
+  GetWaveform(waveform);
+
+  std::cout << "Waveform size: " << waveform.size() << std::endl;
+  for (int i=0; i<waveform.size(); ++i)
+  {
+    std::cout << waveform.at(i) << std::endl;
+  }
   
 
   return true;
@@ -36,8 +49,71 @@ bool Scope::Execute()
 
 bool Scope::Finalise()
 {
-  Log("FunctionGenerator: Finalising", 1, m_verbose);
+  Log("Scope: Finalising", 1, m_verbose);
   viClose(m_instrument);
+
+  return true;
+}
+
+bool Scope::GetDeltaT(float &deltaT)
+{
+  std::string output;
+  WriteVISA("WFMO:XIN?");
+  if (ReadVISA(output))
+  {
+    deltaT = std::stof(output);
+    return true;
+  }
+  else
+    return false;
+}
+
+bool Scope::GetWaveform(std::vector<float> &waveform)
+{
+  waveform.clear();
+  std::string output;
+
+  WriteVISA("WFMOutpre:YOFf?");
+  ReadVISA(output);
+  float yoff = std::stof(output); // Y offset - Must be subtracted as step 1
+
+  WriteVISA("WFMO:YMU?");
+  ReadVISA(output);
+  float ymult = std::stof(output); // Y scale - Must be multiplied as step 2
+
+  WriteVISA("WFMO:YZE?");
+  ReadVISA(output);
+  float yzero = std::stof(output); // Y zero position - Must be added as step 3
+
+  WriteVISA("CURVE?");
+  ViStatus status = viRead(m_instrument, (unsigned char*)buffer, buffer_size_B, &io_bytes);
+
+  if(!CheckStatus(status)) return false;
+
+  int size;
+  if (io_bytes < buffer_size_B)
+    size = io_bytes;
+  else
+    size = buffer_size_B;
+
+  std::cout << "Size of buffer in bytes: " << io_bytes << std::endl;
+
+  char numdigits[1];
+  strncat(numdigits, &(buffer[1]), 1); // Second byte contains number of additional digits in header
+  int startpos = atoi(numdigits) + 2;
+  int entries = (size - startpos) / 2; // Each entry is 2 bytes long
+
+  std::cout << "Number of entries: " << std::endl;
+
+  int16_t point;
+  //float point;
+  for(int i=0; i<entries; ++i)
+  {
+    point = 0; // Reset point, otherwise strncat will not overwrite previous data
+    //strncat((char*)&point, &(buffer[startpos+i*4]), 4); // Copy next four bytes to point
+    strncat((char*)&point, &(buffer[startpos+i*2]), 2); // Copy next two bytes to point
+    waveform.push_back((point - yoff) * ymult + yzero);
+  }
 
   return true;
 }
@@ -51,31 +127,33 @@ bool Scope::InitSetup()
   WriteVISA("CH1:LABEL:NAME \"LED TRIGGER\"");
   WriteVISA("CH1:POS -2.5");
   WriteVISA("CH1:OFFSET 0");
-  WriteVISA("CH1:TERMINATION 50.0E+0");
+  WriteVISA("CH1:TERMINATION 50");
 
-  WriteVISA("CH1:BANDWIDTH FULL");
-  WriteVISA("CH1:COUPLING DC");
-  WriteVISA("CH1:LABEL:NAME \"PMT SIGNAL\"");
-  WriteVISA("CH1:POS 0");
-  WriteVISA("CH1:OFFSET 0");
-  WriteVISA("CH1:TERMINATION 50.0E+0");
+  WriteVISA("CH2:BANDWIDTH FULL");
+  WriteVISA("CH2:COUPLING DC");
+  WriteVISA("CH2:LABEL:NAME \"PMT SIGNAL\"");
+  WriteVISA("CH2:POS 0");
+  WriteVISA("CH2:OFFSET 0");
+  WriteVISA("CH2:TERMINATION 50");
 
   WriteVISA("HORIZONTAL:FASTFRAME:STATE 0");
-  WriteVISA("HORIZONTAL:RECORDLENGTH 10000");
+  //WriteVISA("HORIZONTAL:RECORDLENGTH 10000");
   WriteVISA("HORIZONTAL:MAIN:POSITION 20");
   WriteVISA("HORIZONTAL:RESOLUTION 10000");
-  WriteVISA("HORIZONTAL:SCALE 10"); // Time per division??
+  WriteVISA("HORIZONTAL:SCALE 10E-9");
 
   WriteVISA("ACQUIRE:MODE AVERAGE");
   WriteVISA("ACQUIRE:NUMAVG 100");
 
   WriteVISA("TRIGGER:A:EDGE:COUPLING DC");
   WriteVISA("TRIGGER:A:EDGE:SLOPE RISE");
-  WriteVISA("TRIGGER:A:EDGE:SOUCE CH1");
-  WriteVISA("TRIGGER:A:LEVEL 2.0");
+  WriteVISA("TRIGGER:A:EDGE:SOURCE CH1");
+  WriteVISA("TRIGGER:A:LEVEL 0.5");
 
-  WriteVISA("DATA:ENCDG FPBINARY");
+  WriteVISA("DATA:ENCDG SRIBINARY"); //SFPBINARY / SRIBINARY / ASCII
   WriteVISA("DATA:SOURCE CH2");
+  WriteVISA("DATA:START 1");
+  WriteVISA("DATA:STOP 999999");
 
   // Define measurements
   std::vector<std::string> meas
@@ -161,13 +239,16 @@ bool Scope::ReadVISA(std::string &response)
 {
   ViStatus status = viRead(m_instrument, (unsigned char*)buffer, buffer_size_B, &io_bytes);
 
-  // Response is not null-terminated. Add '\0' at end.
-  if (io_bytes < buffer_size_B)
-    buffer[io_bytes] = '\0';
+  if(CheckStatus(status))
+  {
+    if (io_bytes < buffer_size_B) // Response is not null-terminated. Add '\0' at end.
+      buffer[io_bytes] = '\0';
+    else
+      buffer[buffer_size_B] = '\0';
+
+    response = std::string(buffer);
+    return true;
+  }
   else
-    buffer[buffer_size_B] = '\0';
-
-  response = std::string(buffer);
-
-  return CheckStatus(status);
+    return false;
 }
