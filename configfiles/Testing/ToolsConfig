@@ -1,1 +1,4 @@
-funcgen FunctionGenerator configfiles/Testing/FunctionGeneratorConfig
+scheduler Scheduler         configfiles/Testing/SchedulerConfig
+#funcgen  FunctionGenerator configfiles/Testing/FunctionGeneratorConfig
+#scope    Scope             configfiles/Testing/ScopeConfig
+#writer   Writer            configfiles/Testing/WriterConfig
