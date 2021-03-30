@@ -2,17 +2,21 @@ ToolDAQPath=ToolDAQ
 
 CXXFLAGS= -std=c++11 -fPIC -O3 -Wpedantic # -g -DDEBUG
 
+RootLib = `root-config --libs`
+RootInclude = `root-config --cflags`
+
 ZMQLib= -L $(ToolDAQPath)/zeromq-4.0.7/lib -lzmq 
 ZMQInclude= -I $(ToolDAQPath)/zeromq-4.0.7/include/ 
 
 BoostLib= -L $(ToolDAQPath)/boost_1_66_0/install/lib -lboost_date_time -lboost_serialization -lboost_iostreams
 BoostInclude= -I $(ToolDAQPath)/boost_1_66_0/install/include
 
-DataModelInclude =
-DataModelLib =
+DataModelLib=  $(RootLib)
+DataModelInclude= $(RootInclude)
 
-MyToolsInclude = -I /usr/include/ni-visa/
-MyToolsLib = /usr/lib/x86_64-linux-gnu/libvisa.so -lximc 
+MyToolsInclude = $(RootInclude) -I /usr/include/ni-visa/
+MyToolsLib = $(RootLib) /usr/lib/x86_64-linux-gnu/libvisa.so -lximc 
+
 
 all: lib/libStore.so lib/libLogging.so lib/libDataModel.so include/Tool.h lib/libMyTools.so lib/libServiceDiscovery.so lib/libToolChain.so main RemoteControl  NodeDaemon
 
