@@ -26,6 +26,7 @@ class Scheduler: public Tool {
   bool Finalise(); ///< Finalise funciton used to clean up resorces.
 
   std::vector<std::tuple<double,double>> ParseRanges(std::string rangesString);
+  bool UpdateMotorCoords();
 
  private:
 

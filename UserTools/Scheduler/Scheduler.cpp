@@ -27,11 +27,15 @@ bool Scheduler::Initialise(std::string configfile, DataModel &data)
   std::vector<std::tuple<double,double>> angleRanges = ParseRanges(angleRangesString);
   std::vector<std::tuple<double,double>> yRanges = ParseRanges(yRangesString);
 
+  if(angleRanges.size() == 0 || yRanges.size() == 0)
+  {
+    Log("Scheduler: No scan ranges found. Exiting.", 1, m_verbose);
+    return false;
+  }
+
   iterAngle.Initialise(stepSizeAngle, angleRanges);
   iterY.Initialise(stepSizeY, yRanges);
 
-  m_data->coord_angle = iterAngle.GetPos();
-  m_data->coord_y = iterY.GetPos();
   m_data->mode = state::idle;
 
   stateName[state::idle]     = "idle";
@@ -39,8 +43,7 @@ bool Scheduler::Initialise(std::string configfile, DataModel &data)
   stateName[state::move]     = "move";
   stateName[state::record]   = "record";
   stateName[state::finalise] = "finalise";
-
-
+  stateName[state::end]      = "end";
 
   return true;
 }
@@ -48,9 +51,7 @@ bool Scheduler::Initialise(std::string configfile, DataModel &data)
 bool Scheduler::Execute()
 {
 
-  Log("Scheduler: Starting mode "+stateName[m_data->mode], 1, m_verbose);
-
-  std::cout << "(y, angle) = (" << m_data->coord_y << ", " << m_data->coord_angle << ")" << std::endl;
+  //std::cout << "(y, angle) = (" << m_data->coord_y << ", " << m_data->coord_angle << ")" << std::endl;
 
   switch (m_data->mode)
   {
@@ -60,6 +61,8 @@ bool Scheduler::Execute()
 
     case state::init:
       m_data->mode = state::move;
+      m_data->coord_angle = iterAngle.GetPos();
+      m_data->coord_y = iterY.GetPos();
       break;
 
     case state::move:
@@ -67,30 +70,25 @@ bool Scheduler::Execute()
       break;
 
     case state::record:
-      if(!iterAngle.NextPos())
-      {
-        if(!iterY.NextPos())
-        {
-          m_data->mode = state::finalise;
-          break;
-        }
-      }
-      m_data->coord_angle = iterAngle.GetPos();
-      m_data->coord_y = iterY.GetPos();
       m_data->mode = state::move;
+      if(!UpdateMotorCoords())
+        m_data->mode = state::finalise;
       break;
 
     case state::finalise:
       m_data->vars.Set("StopLoop",1);
+      m_data->mode = state::end;
       break;
   }
+
+  Log("Scheduler: Starting mode "+stateName[m_data->mode], 1, m_verbose);
 
   return true;
 }
 
 bool Scheduler::Finalise()
 {
-
+  Log("Scheduler: Finalising", 1, m_verbose);
   return true;
 }
 
@@ -113,36 +111,22 @@ std::vector<std::tuple<double,double>> Scheduler::ParseRanges(std::string ranges
   return ranges;
 }
 
-// bool Scheduler::NextCoordinates()
-// {
-//   bool finished = false;
-//   double new_angle = m_data->coord_angle + m_stepSizeAngle;
-//   if(new_angle > std::get<1>(m_angleRanges.at(curr_angleRange)))
-//   {
-//     curr_angleRange += 1;
-//     if (curr_angleRange > m_angleRanges.size()-1)
-//     {
-//       curr_angleRange = 0;
-//       curr_yRange += 1;
-//       m_data->coord_y = std::get<0>(m_yRanges.at(curr_yRange));
-//     }
+bool Scheduler::UpdateMotorCoords()
+{
+  bool validPosition = true;
+  if(!iterAngle.NextPos())
+  {
+    if(!iterY.NextPos())
+    {
+      validPosition = false;
+    }
+  }
 
-//     m_data->coord_angle = std::get<0>(m_angleRanges.at(curr_angleRange));
-//     m_data->mode = state::move;
-//         }
-//         else
-          
-//   }
-//     else
-//     {
-//       m_data->coord_angle = new_angle;
-//     }
-//   }
-//   return finished;
-// }
+  if(validPosition)
+  {
+    m_data->coord_angle = iterAngle.GetPos();
+    m_data->coord_y = iterY.GetPos();
+  }
 
-// bool Scheduler::NextCoord(double stepsize, std::vector<std::tuple<double,double>> ranges)
-// {
-//   bool finished = false;
-//   double new_coord = ranges
-// }
+  return validPosition;
+}
