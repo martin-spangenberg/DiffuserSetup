@@ -23,7 +23,8 @@ enum state
   init,
   move,
   record,
-  finalise
+  finalise,
+  end
 };
 
 class DataModel {

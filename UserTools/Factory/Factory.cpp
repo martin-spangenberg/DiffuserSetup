@@ -11,5 +11,12 @@ if (tool=="FunctionGenerator") ret=new FunctionGenerator;
 if (tool=="Scope") ret=new Scope;
 if (tool=="Writer") ret=new Writer;
 if (tool=="Scheduler") ret=new Scheduler;
+if (tool=="HumidityReader") ret=new HumidityReader;
+if (tool=="FunctionGeneratorDummy") ret=new FunctionGeneratorDummy;
+if (tool=="ScopeDummy") ret=new ScopeDummy;
+if (tool=="HumidityReaderDummy") ret=new HumidityReaderDummy;
+if (tool=="StepperMotorArduinoDummy") ret=new StepperMotorArduinoDummy;
+if (tool=="StepperMotorStandaDummy") ret=new StepperMotorStandaDummy;
+
 return ret;
 }
