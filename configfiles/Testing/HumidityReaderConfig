@@ -1,0 +1,2 @@
+verbose         1
+USB_port        /dev/ttyACM0   # Name of USB port on the system

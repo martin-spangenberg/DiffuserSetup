@@ -30,23 +30,14 @@ bool StepperMotorArduino::Initialise(std::string configfile, DataModel &data)
 
 bool StepperMotorArduino::Execute()
 {
-  // Testing homing followed by move commands
-  Log("Current position: "+std::to_string(curr_pos));
-  Home();
-  Log("Current position: "+std::to_string(curr_pos));
-  SetZero();
-  Log("Current position: "+std::to_string(curr_pos));
-  Move(30.0);
-  Log("Current position: "+std::to_string(curr_pos));
-  MoveRelative(-15.0);
-  Log("Current position: "+std::to_string(curr_pos));
+
 
   return true;
 }
 
 bool StepperMotorArduino::Finalise()
 {
-  Log("StepperMotorArduino: Closing serial port", 1, verbose);
+  Log("StepperMotorArduino: Closing serial port", 1, m_verbose);
   close(serial_port);
 
   return true;
@@ -58,7 +49,7 @@ bool StepperMotorArduino::Move(float pos)
   ss << std::fixed << std::setprecision(4) << fmod(pos, 360.);
   std::string pos_str = ss.str();
 
-  Log("StepperMotorArduino: Moving to position "+pos_str, 1, verbose);
+  Log("StepperMotorArduino: Moving to position "+pos_str, 1, m_verbose);
   std::string command = std::to_string(n_motor)+" MV "+pos_str+"\n";
   WriteSerial(command);
 
@@ -78,7 +69,7 @@ bool StepperMotorArduino::Move(float pos)
 bool StepperMotorArduino::MoveRelative(float dist)
 {
   std::string dist_str = std::to_string(dist);
-  Log("StepperMotorArduino: Moving "+dist_str+" units relative to current position", 1, verbose);
+  Log("StepperMotorArduino: Moving "+dist_str+" units relative to current position", 1, m_verbose);
   float new_pos = curr_pos + dist;
   Move(new_pos);
 
@@ -87,7 +78,7 @@ bool StepperMotorArduino::MoveRelative(float dist)
 
 bool StepperMotorArduino::Home()
 {
-  Log("StepperMotorArduino: Homing", 1, verbose);
+  Log("StepperMotorArduino: Homing", 1, m_verbose);
   std::string command = std::to_string(n_motor)+" HOME\n";
   WriteSerial(command);
 
@@ -105,7 +96,7 @@ bool StepperMotorArduino::Home()
 
 bool StepperMotorArduino::SetZero()
 {
-  Log("StepperMotorArduino: Setting current position to zero", 1, verbose);
+  Log("StepperMotorArduino: Setting current position to zero", 1, m_verbose);
   std::string command = std::to_string(n_motor)+" ZERO\n";
   WriteSerial(command);
   std::string response;
@@ -119,7 +110,7 @@ bool StepperMotorArduino::SetZero()
 bool StepperMotorArduino::SetStepsPerUnit(int steps)
 {
   std::string steps_str = std::to_string(steps);
-  Log("StepperMotorArduino: Setting steps per unit to "+steps_str, 1, verbose);
+  Log("StepperMotorArduino: Setting steps per unit to "+steps_str, 1, m_verbose);
   std::string command = std::to_string(n_motor)+" SPU "+steps_str+"\n";
   WriteSerial(command);
   std::string response;
@@ -167,7 +158,7 @@ bool StepperMotorArduino::ReadSerial(std::string &response)
     else if (num_bytes < 0)
     {
       std::string error_text = strerror(errno);
-      Log("StepperMotorArduino: Error reading: "+error_text, 1, verbose);
+      Log("StepperMotorArduino: Error reading: "+error_text, 1, m_verbose);
       return false;
     }
 
@@ -224,14 +215,14 @@ bool StepperMotorArduino::EstablishUSB()
   cfsetispeed(&tty, B9600);
   cfsetospeed(&tty, B9600);
 
-  Log("StepperMotorArduino: Connecting to USB serial port " + USB_port, 1, verbose);
+  Log("StepperMotorArduino: Connecting to USB serial port " + USB_port, 1, m_verbose);
 
   // Save tty settings, also checking for error
   if (tcsetattr(serial_port, TCSANOW, &tty) != 0)
   {
     std::string error_number = std::to_string(errno);
     std::string error_text = strerror(errno);
-    Log("StepperMotorArduino: Error "+error_number+" from tcsetattr: "+error_text, 1, verbose);
+    Log("StepperMotorArduino: Error "+error_number+" from tcsetattr: "+error_text, 1, m_verbose);
     return false;
   }
 

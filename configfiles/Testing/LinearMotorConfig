@@ -1,0 +1,2 @@
+device_name     xi-com:///dev/ximc/000029AA  # Name of USB device
+steps_per_unit  1000                         # Number of motor steps per chosen distance unit

@@ -39,7 +39,7 @@ bool StepperMotorStanda::Execute()
 
 bool StepperMotorStanda::Finalise()
 {
-  printf( "Closing device..." );
+  Log("StepperMotorStanda: Closing device", 1, m_verbose);
   command_stop(device); // Soft stop motor
   close_device(&device); // Close device
 

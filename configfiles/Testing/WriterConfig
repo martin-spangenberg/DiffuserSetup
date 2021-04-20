@@ -1,2 +1,9 @@
-verbose          1
-outputFile       myfile.root
+verbose              1
+filename             myfile.root
+treename             diffuser                 # Name of TTree in the root file
+ID_diffuser          DiffuserID               # ID of diffuser sample
+ID_PMT               PhotomultiplierID        # ID of photomultiplier tube used
+ID_PD                PhotodiodeID             # ID of the photodiode used
+ID_lightsource       LightsourceID            # ID of the light source used
+ID_experimentalist   "My Name"                # Name of experimentalist
+notes                "This is just a test"    # Enter notes about the current experiment

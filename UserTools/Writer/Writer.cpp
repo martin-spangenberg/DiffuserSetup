@@ -10,12 +10,27 @@ bool Writer::Initialise(std::string configfile, DataModel &data)
   if(configfile!="")  m_variables.Initialise(configfile);
   //m_variables.Print();
 
+  //////////////////////////
+  // Output format version//
+  //////////////////////////
+  int version_major = 1; // Major version
+  int version_minor = 0; // Minor version
+  int version_patch = 0; // Patch version
+  // Version numbers should be incremented in case changes are made to the output file format
+  // They should follow semantic versioning as described on semver.org
+
   m_data = &data;
   m_log = m_data->Log;
 
   if(!m_variables.Get("verbose", m_verbose)) m_verbose = 1;
-  if(!m_variables.Get("fileName", m_fileName)) m_fileName = "diffuser.root";
-  if(!m_variables.Get("treeName", m_treeName)) m_treeName = "diffuser";
+  if(!m_variables.Get("filename", m_fileName)) m_fileName = "diffuser.root";
+  if(!m_variables.Get("treename", m_treeName)) m_treeName = "diffuser";
+  m_variables.Get("ID_diffuser", ID_diffuser);
+  m_variables.Get("ID_PMT", ID_PMT);
+  m_variables.Get("ID_PD", ID_PD);
+  m_variables.Get("ID_lightsource", ID_lightsource);
+  m_variables.Get("ID_experimentalist", ID_experimentalist);
+  m_variables.Get("notes", notes);  
 
   file = new TFile(m_fileName.c_str(), "RECREATE");
   tree = new TTree(m_treeName.c_str(),m_treeName.c_str());
@@ -57,23 +72,22 @@ bool Writer::Initialise(std::string configfile, DataModel &data)
 
 bool Writer::Execute()
 {
-  for(int i=0; i<10; ++i)
-  {
-    for(int j=0; j<180; ++j)
-    {
-      coord_y = i;
-      coord_angle = j;
 
-      std::cout << "Loop iteration " << i << "," << j << std::endl;
-      WriteFile();
+    switch(m_data->mode)
+    {
+      case state::record:
+        Log("Writer: Writing collected data", 1, m_verbose);
+        WriteFile();
     }
-  }
+    
+  
 
   return true;
 }
 
 bool Writer::Finalise()
 {
+  Log("Writer: Finalising", 1, m_verbose);
   tree->Write();
   file->Close();
 
@@ -119,20 +133,11 @@ bool Writer::WriteFile()
   time_second = timestruct->tm_sec;
   coord_angle = m_data->coord_angle;
   coord_y = m_data->coord_y;
-  lab_temp = std::rand()*20./RAND_MAX;
-  lab_humid = std::rand()*100./RAND_MAX;
+  lab_temp = m_data->lab_temp;
+  lab_humid = m_data->lab_humid;
 
-  waveform_PMT.clear();
-  waveform_PD.clear();
-  double sigma = 100.;
-  double mean = 5000.;
-  double time;
-  for(int i=0; i<10000; ++i)
-  {
-    time = i;
-    waveform_PMT.push_back(1/(sigma*sqrt(2*M_PI))*exp(-(time-mean)*(time-mean)/(2*sigma*sigma)));
-    waveform_PD.push_back(std::rand()/(RAND_MAX/1.01));
-  }
+  waveform_PMT = m_data->waveform_PMT;
+  waveform_PD = m_data->waveform_PD;
 
   tree->Fill();
 

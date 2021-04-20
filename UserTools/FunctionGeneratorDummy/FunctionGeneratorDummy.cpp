@@ -47,7 +47,7 @@ bool FunctionGeneratorDummy::Execute()
   {
     case state::record:
       SendTrigger();
-      sleep(1);
+      sleep(5);
       break;
   }
 

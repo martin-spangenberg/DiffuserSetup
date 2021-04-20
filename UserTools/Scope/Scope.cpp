@@ -18,7 +18,8 @@ bool Scope::Initialise(std::string configfile, DataModel &data)
 
   if (EstablishConnection())
   {
-    InitSetup();  
+    InitSetup();
+    m_data->dt = GetDeltaT();
     return true;
   }
   else
@@ -55,17 +56,12 @@ bool Scope::Finalise()
   return true;
 }
 
-bool Scope::GetDeltaT(float &deltaT)
+double Scope::GetDeltaT()
 {
   std::string output;
   WriteVISA("WFMO:XIN?");
-  if (ReadVISA(output))
-  {
-    deltaT = std::stof(output);
-    return true;
-  }
-  else
-    return false;
+  ReadVISA(output);
+  return std::stof(output);
 }
 
 bool Scope::GetWaveform(std::vector<float> &waveform)

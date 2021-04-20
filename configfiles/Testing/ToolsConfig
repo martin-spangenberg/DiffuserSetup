@@ -1,4 +1,7 @@
-scheduler Scheduler         configfiles/Testing/SchedulerConfig
-#funcgen  FunctionGenerator configfiles/Testing/FunctionGeneratorConfig
-#scope    Scope             configfiles/Testing/ScopeConfig
-#writer   Writer            configfiles/Testing/WriterConfig
+scheduler    Scheduler                  configfiles/Testing/SchedulerConfig
+motor_lin    StepperMotorStandaDummy    configfiles/Testing/LinearMotorConfig
+motor_rot    StepperMotorArduinoDummy   configfiles/Testing/RotatingMotorConfig
+humidity     HumidityReaderDummy        configfiles/Testing/HumidityReaderConfig
+funcgen      FunctionGeneratorDummy     configfiles/Testing/FunctionGeneratorConfig
+scope        ScopeDummy                 configfiles/Testing/ScopeConfig
+writer       Writer                     configfiles/Testing/WriterConfig
