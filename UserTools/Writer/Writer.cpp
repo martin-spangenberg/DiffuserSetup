@@ -23,14 +23,14 @@ bool Writer::Initialise(std::string configfile, DataModel &data)
   m_log = m_data->Log;
 
   if(!m_variables.Get("verbose", m_verbose)) m_verbose = 1;
-  if(!m_variables.Get("filename", m_fileName)) m_fileName = "diffuser.root";
-  if(!m_variables.Get("treename", m_treeName)) m_treeName = "diffuser";
-  m_variables.Get("ID_diffuser", ID_diffuser);
-  m_variables.Get("ID_PMT", ID_PMT);
-  m_variables.Get("ID_PD", ID_PD);
-  m_variables.Get("ID_lightsource", ID_lightsource);
-  m_variables.Get("ID_experimentalist", ID_experimentalist);
-  m_variables.Get("notes", notes);  
+  if(!m_variables.Get("writer_filename", m_fileName)) m_fileName = "diffuser.root";
+  if(!m_variables.Get("writer_treename", m_treeName)) m_treeName = "diffuser";
+  m_variables.Get("writer_ID_diffuser", ID_diffuser);
+  m_variables.Get("writer_ID_PMT", ID_PMT);
+  m_variables.Get("writer_ID_PD", ID_PD);
+  m_variables.Get("writer_ID_lightsource", ID_lightsource);
+  m_variables.Get("writer_ID_experimentalist", ID_experimentalist);
+  m_variables.Get("writer_notes", notes);
 
   file = new TFile(m_fileName.c_str(), "RECREATE");
   tree = new TTree(m_treeName.c_str(),m_treeName.c_str());
@@ -89,6 +89,7 @@ bool Writer::Finalise()
 {
   Log("Writer: Finalising", 1, m_verbose);
   tree->Write();
+  file->Write();
   file->Close();
 
   return true;
@@ -96,28 +97,16 @@ bool Writer::Finalise()
 
 bool Writer::WriteFile()
 {
-  // dt = 1./(2.5*pow(10.,9));
-  // pulse_rate = 100000.;
-  // pulse_N = 100;
-  // ID_diffuser = "id of diffuser";
-  // ID_PMT = "id of PMT";
-  // ID_PD = "id of PD";
-  // ID_lightsource = "id of lightsource";
-  // ID_experimentalist = "My Name";
-  // notes = "Notes go here. Whatever floats your boat.";
-  // version_major = 1;
-  // version_minor = 1;
-  // version_patch = 1;
 
   dt = m_data->dt;
   pulse_rate = m_data->pulse_rate;
   pulse_N = m_data->pulse_N;
-  ID_diffuser = m_data->ID_diffuser;
-  ID_PMT = m_data->ID_PMT;
-  ID_PD = m_data->ID_PD;
-  ID_lightsource = m_data->ID_lightsource;
-  ID_experimentalist = m_data->ID_experimentalist;
-  notes = m_data->notes;
+  // ID_diffuser = m_data->ID_diffuser;
+  // ID_PMT = m_data->ID_PMT;
+  // ID_PD = m_data->ID_PD;
+  // ID_lightsource = m_data->ID_lightsource;
+  // ID_experimentalist = m_data->ID_experimentalist;
+  // notes = m_data->notes;
   version_major = m_data->version_major;
   version_minor = m_data->version_minor;
   version_patch = m_data->version_patch;

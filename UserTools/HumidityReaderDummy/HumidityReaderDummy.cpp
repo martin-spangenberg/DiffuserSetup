@@ -15,7 +15,7 @@ bool HumidityReaderDummy::Initialise(std::string configfile, DataModel &data)
   m_log = m_data->Log;
 
   if(!m_variables.Get("verbose",m_verbose)) m_verbose = 1;
-  m_variables.Get("USB_port", USB_port);
+  m_variables.Get("humid_USB_port", USB_port);
 
   if (EstablishUSB())
     return true;

@@ -14,8 +14,8 @@ bool StepperMotorStanda::Initialise(std::string configfile, DataModel &data)
   m_log = m_data->Log;
 
   if(!m_variables.Get("verbose",m_verbose)) m_verbose = 1;
-  if(!m_variables.Get("steps_per_unit", steps_per_unit)) steps_per_unit = 1;
-  m_variables.Get("device_name", m_device_name);
+  if(!m_variables.Get("linmotor_steps_per_unit", steps_per_unit)) steps_per_unit = 1;
+  m_variables.Get("linmotor_device_name", m_device_name);
 
   if (EstablishUSB()) {
     SetStepsPerUnit(steps_per_unit);

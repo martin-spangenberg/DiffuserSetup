@@ -15,9 +15,9 @@ bool StepperMotorArduinoDummy::Initialise(std::string configfile, DataModel &dat
   m_log = m_data->Log;
 
   if(!m_variables.Get("verbose", m_verbose)) m_verbose = 1;
-  if(!m_variables.Get("n_motor", n_motor)) n_motor = 0;
-  if(!m_variables.Get("steps_per_unit", steps_per_unit)) steps_per_unit = 1;
-  m_variables.Get("USB_port", USB_port);
+  if(!m_variables.Get("rotmotor_n_motor", n_motor)) n_motor = 0;
+  if(!m_variables.Get("rotmotor_steps_per_unit", steps_per_unit)) steps_per_unit = 1;
+  m_variables.Get("rotmotor_USB_port", USB_port);
 
   if (EstablishUSB()) {
     SetStepsPerUnit(steps_per_unit);

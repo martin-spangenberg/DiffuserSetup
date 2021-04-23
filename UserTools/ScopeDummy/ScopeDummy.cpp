@@ -14,7 +14,7 @@ bool ScopeDummy::Initialise(std::string configfile, DataModel &data)
   m_log = m_data->Log;
 
   if(!m_variables.Get("verbose",m_verbose)) m_verbose = 1;
-  m_variables.Get("IPaddress", m_IPaddress);
+  m_variables.Get("scope_IPaddress", m_IPaddress);
 
   if (EstablishConnection())
   {

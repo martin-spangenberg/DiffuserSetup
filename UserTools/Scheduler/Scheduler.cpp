@@ -19,10 +19,10 @@ bool Scheduler::Initialise(std::string configfile, DataModel &data)
   double stepSizeY;
 
   if(!m_variables.Get("verbose",m_verbose)) m_verbose = 1;
-  m_variables.Get("stepSizeAngle",stepSizeAngle);
-  m_variables.Get("stepSizeY",stepSizeY);
-  m_variables.Get("angleRanges",angleRangesString);
-  m_variables.Get("yRanges",yRangesString);
+  m_variables.Get("scheduler_stepSizeAngle",stepSizeAngle);
+  m_variables.Get("scheduler_stepSizeY",stepSizeY);
+  m_variables.Get("scheduler_angleRanges",angleRangesString);
+  m_variables.Get("scheduler_yRanges",yRangesString);
 
   std::vector<std::tuple<double,double>> angleRanges = ParseRanges(angleRangesString);
   std::vector<std::tuple<double,double>> yRanges = ParseRanges(yRangesString);
