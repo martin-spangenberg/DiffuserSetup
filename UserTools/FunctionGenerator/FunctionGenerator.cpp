@@ -47,11 +47,20 @@ bool FunctionGenerator::Execute()
   //   sleep(2);
   // }
 
-  std::string response;
-  WriteVISA("*IDN?");
-  ReadVISA(response);
+  switch(m_data->mode)
+  {
+    case state::record:
+      SendTrigger();
+      sleep(1);
+      break;
+  }
 
-  Log("Response = " + response, 1, m_verbose);
+
+  //std::string response;
+  //WriteVISA("*IDN?");
+  //ReadVISA(response);
+
+  //Log("Response = " + response, 1, m_verbose);
 
   return true;
 }

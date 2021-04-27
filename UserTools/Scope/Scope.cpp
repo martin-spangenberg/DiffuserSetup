@@ -34,15 +34,32 @@ bool Scope::Execute()
   //  sleep(1);
   //}
 
-  sleep(30);
-  std::vector<float> waveform;
-  GetWaveform(waveform);
-
-  std::cout << "Waveform size: " << waveform.size() << std::endl;
-  for (int i=0; i<waveform.size(); ++i)
+ switch(m_data->mode)
   {
-    std::cout << waveform.at(i) << std::endl;
+    case state::record:
+      Log("ScopeDummy: Getting waveform from scope", 1, m_verbose);
+
+      std::vector<double> waveform;
+      GetWaveform(waveform);
+
+      Log("ScopeDummy: Waveform size: "+std::to_string(waveform.size()), 1, m_verbose);
+
+      m_data->waveform_PMT = waveform;
+
+      break;
   }
+
+
+  //Log("Scope: Waiting for data averaging", 1, m_verbose);
+  //sleep(30);
+  //std::vector<float> waveform;
+  //GetWaveform(waveform);
+
+  //std::cout << "Waveform size: " << waveform.size() << std::endl;
+  //for (int i=0; i<waveform.size(); ++i)
+  //{
+  //  std::cout << waveform.at(i) << std::endl;
+  //}
   
 
   return true;
@@ -124,6 +141,7 @@ bool Scope::InitSetup()
   WriteVISA("CH1:POS -2.5");
   WriteVISA("CH1:OFFSET 0");
   WriteVISA("CH1:TERMINATION 50");
+  //WriteVISA("CH1:SCALE ") 1V/div 
 
   WriteVISA("CH2:BANDWIDTH FULL");
   WriteVISA("CH2:COUPLING DC");
@@ -131,6 +149,7 @@ bool Scope::InitSetup()
   WriteVISA("CH2:POS 0");
   WriteVISA("CH2:OFFSET 0");
   WriteVISA("CH2:TERMINATION 50");
+  //WriteVISA("CH2:SCALE ") 1V/div
 
   WriteVISA("HORIZONTAL:FASTFRAME:STATE 0");
   //WriteVISA("HORIZONTAL:RECORDLENGTH 10000");
@@ -144,7 +163,7 @@ bool Scope::InitSetup()
   WriteVISA("TRIGGER:A:EDGE:COUPLING DC");
   WriteVISA("TRIGGER:A:EDGE:SLOPE RISE");
   WriteVISA("TRIGGER:A:EDGE:SOURCE CH1");
-  WriteVISA("TRIGGER:A:LEVEL 0.5");
+  WriteVISA("TRIGGER:A:LEVEL 2.0");
 
   WriteVISA("DATA:ENCDG SRIBINARY"); //SFPBINARY / SRIBINARY / ASCII
   WriteVISA("DATA:SOURCE CH2");

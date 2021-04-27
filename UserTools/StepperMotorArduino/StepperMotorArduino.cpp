@@ -31,6 +31,12 @@ bool StepperMotorArduino::Initialise(std::string configfile, DataModel &data)
 bool StepperMotorArduino::Execute()
 {
 
+  switch (m_data->mode)
+  {
+    case state::move:
+      Move(m_data->coord_angle);
+      break;
+  }
 
   return true;
 }

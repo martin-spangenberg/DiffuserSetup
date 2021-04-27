@@ -31,8 +31,30 @@ bool StepperMotorStanda::Initialise(std::string configfile, DataModel &data)
 bool StepperMotorStanda::Execute()
 {
 
-  Home();
-  Move(20.);
+  float position;
+
+ switch (m_data->mode)
+  {
+    case state::move:
+      //GetCurrentPosition(position);
+      //std::cout << "Position before home: " << position << std::endl;
+
+      //Home();
+      //GetCurrentPosition(position);
+      //std::cout << "Position before move: " << position << std::endl;
+
+      Move(m_data->coord_y);
+
+      //GetCurrentPosition(position);
+      //std::cout << "Position after move: " << position << std::endl;
+
+      break;
+  }
+
+  
+
+  //Home();
+  //Move(20.);
 
   return true;
 }
@@ -50,6 +72,7 @@ bool StepperMotorStanda::Move(float pos)
 {
   Log("StepperMotorStanda: Moving to position "+std::to_string(pos));
   command_move_calb(device, pos, &calibration);
+  command_wait_for_stop(device, 100);
 
   return true;
 }
@@ -58,6 +81,7 @@ bool StepperMotorStanda::MoveRelative(float dist)
 {
   Log("StepperMotorStanda: Moving "+std::to_string(dist)+" units relative to current position", 1, verbose);
   command_movr_calb(device, dist, &calibration);
+  command_wait_for_stop(device, 100);
 
   return true;
 }
@@ -66,6 +90,8 @@ bool StepperMotorStanda::Home()
 {
   Log("StepperMotorStanda: Homing", 1, verbose);
   command_homezero(device);
+  command_wait_for_stop(device, 100);
+
 
   return true;
 }
