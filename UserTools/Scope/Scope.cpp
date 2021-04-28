@@ -81,7 +81,7 @@ double Scope::GetDeltaT()
   return std::stof(output);
 }
 
-bool Scope::GetWaveform(std::vector<float> &waveform)
+bool Scope::GetWaveform(std::vector<double> &waveform)
 {
   waveform.clear();
   std::string output;

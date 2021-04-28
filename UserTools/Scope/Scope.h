@@ -32,7 +32,7 @@ class Scope: public Tool {
   bool InitSetup(); // Initial setup parameters
   bool SendTrigger();
   bool EstablishConnection();
-  bool GetWaveform(std::vector<float> &waveform);
+  bool GetWaveform(std::vector<double> &waveform);
   double GetDeltaT();
 
  private:
