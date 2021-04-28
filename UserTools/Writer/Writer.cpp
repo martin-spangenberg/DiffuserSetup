@@ -88,7 +88,6 @@ bool Writer::Execute()
 bool Writer::Finalise()
 {
   Log("Writer: Finalising", 1, m_verbose);
-  tree->Write();
   file->Write();
   file->Close();
 
