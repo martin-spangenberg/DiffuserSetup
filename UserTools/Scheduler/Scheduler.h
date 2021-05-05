@@ -31,9 +31,9 @@ class Scheduler: public Tool {
  private:
 
   int m_verbose;
-  
-  // int curr_angleRange;
-  // int curr_yRange;
+  zmq::socket_t *socket;
+  zmq::context_t *context;
+
   state nextState, lastState;
   std::map<state, std::string> stateName;
 
@@ -43,6 +43,7 @@ class Scheduler: public Tool {
     std::vector<std::tuple<double,double>> ranges;
     int currRangeNum;
     double currPos;
+    int direction;
 
     bool Initialise(double ss, std::vector<std::tuple<double,double>> ra)
     {
@@ -50,23 +51,24 @@ class Scheduler: public Tool {
       ranges = ra;
       currRangeNum = 0;
       currPos = std::get<0>(ranges.at(0));
+      direction = (std::get<0>(ranges.at(0)) < std::get<1>(ranges.at(0)))? 1 : -1;
       return true;
     }
 
     bool NextPos()
     {
-      currPos = currPos + stepSize;
+      currPos = currPos + stepSize*direction;
 
-      if(currPos > std::get<1>(ranges.at(currRangeNum)))
+      if((currPos - std::get<1>(ranges.at(currRangeNum)))*direction > 0)
       {
         currRangeNum += 1;
         if(currRangeNum > ranges.size()-1)
         {
-          currPos = std::get<0>(ranges.at(0));
-          currRangeNum = 0;
+          Initialise(stepSize, ranges);
           return false;
         }
         currPos = std::get<0>(ranges.at(currRangeNum));
+        direction = (std::get<0>(ranges.at(currRangeNum)) < std::get<1>(ranges.at(currRangeNum)))? 1 : -1;
       }
 
       return true;

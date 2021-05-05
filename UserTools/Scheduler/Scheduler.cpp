@@ -45,6 +45,10 @@ bool Scheduler::Initialise(std::string configfile, DataModel &data)
   stateName[state::finalise] = "finalise";
   stateName[state::end]      = "end";
 
+  context = new zmq::context_t(1);
+  socket = new zmq::socket_t(*context, ZMQ_PUB);
+  socket->bind("tcp://127.0.0.1:5555");
+
   return true;
 }
 
@@ -52,6 +56,9 @@ bool Scheduler::Execute()
 {
 
   //std::cout << "(y, angle) = (" << m_data->coord_y << ", " << m_data->coord_angle << ")" << std::endl;
+
+  std::string mstring = "Draw";
+  zmq::message_t msg(mstring.length()+1);
 
   switch (m_data->mode)
   {
@@ -73,6 +80,8 @@ bool Scheduler::Execute()
       m_data->mode = state::move;
       if(!UpdateMotorCoords())
         m_data->mode = state::finalise;
+      snprintf ((char *) msg.data(), mstring.length()+1 , "%s" ,mstring.c_str());
+      socket->send(msg);
       break;
 
     case state::finalise:
