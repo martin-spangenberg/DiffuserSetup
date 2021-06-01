@@ -45,8 +45,6 @@ bool Scheduler::Initialise(std::string configfile, DataModel &data)
     file->close();
   }
 
-  m_data->vars.Print();
-
   std::string angleRangesString;
   std::string yRangesString;
   double stepSizeAngle;
