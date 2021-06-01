@@ -3,6 +3,9 @@
 
 #include <string>
 #include <iostream>
+#include <msgpack.hpp>
+#include <fstream>
+#include <streambuf>
 
 #include "Tool.h"
 
@@ -27,15 +30,19 @@ class Scheduler: public Tool {
 
   std::vector<std::tuple<double,double>> ParseRanges(std::string rangesString);
   bool UpdateMotorCoords();
+  zmq::message_t ZMQCreateWaveformMessage(double angle, double ypos, std::vector<double> waveform_PMT, std::vector<double> waveform_PD);
 
  private:
 
   int m_verbose;
-  zmq::socket_t *socket;
+  zmq::socket_t *zmqsocket_send;
+  zmq::socket_t *zmqsocket_recv;
   zmq::context_t *context;
 
   state nextState, lastState;
   std::map<state, std::string> stateName;
+
+  std::ifstream *file;
 
   // Struct to iterate through defined coordinate ranges
   struct RangeIterator {
@@ -79,7 +86,7 @@ class Scheduler: public Tool {
       return currPos;
     }
 
-  } iterAngle, iterY;
+  } m_iterAngle, m_iterY;
 
 
 

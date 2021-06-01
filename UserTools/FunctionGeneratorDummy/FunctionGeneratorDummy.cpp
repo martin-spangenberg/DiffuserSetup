@@ -7,20 +7,19 @@ FunctionGeneratorDummy::FunctionGeneratorDummy():Tool()
 
 bool FunctionGeneratorDummy::Initialise(std::string configfile, DataModel &data)
 {
-  if(configfile!="")  m_variables.Initialise(configfile);
-  //m_variables.Print();
-
   m_data = &data;
   m_log = m_data->Log;
 
-  if(!m_variables.Get("funcgen_verbose", m_verbose)) m_verbose = 1;
-  if(!m_variables.Get("funcgen_channel", m_channel)) m_channel = 1;
-  if(!m_variables.Get("funcgen_shape", m_shape)) m_shape = "SQUARE";
-  if(!m_variables.Get("funcgen_cycles", m_cycles)) m_cycles = 1;
-  if(!m_variables.Get("funcgen_frequency", m_frequency)) m_frequency = 1.0;
-  if(!m_variables.Get("funcgen_Vmin", m_Vmin)) m_Vmin = 0.0;
-  if(!m_variables.Get("funcgen_Vmax", m_Vmax)) m_Vmax = 1.0;
-  m_variables.Get("funcgen_IPaddress", m_IPaddress);
+  std::string cycles_str;
+
+  if(!m_data->vars.Get("verbose", m_verbose)) m_verbose = 1;
+  if(!m_data->vars.Get("funcgen_channel", m_channel)) m_channel = 1;
+  if(!m_data->vars.Get("funcgen_shape", m_shape)) m_shape = "SQUARE";
+  if(!m_data->vars.Get("funcgen_cycles", m_cycles)) m_cycles = 1;
+  if(!m_data->vars.Get("funcgen_frequency", m_frequency)) m_frequency = 1.0;
+  if(!m_data->vars.Get("funcgen_Vmin", m_Vmin)) m_Vmin = 0.0;
+  if(!m_data->vars.Get("funcgen_Vmax", m_Vmax)) m_Vmax = 1.0;
+  m_data->vars.Get("funcgen_IP", m_IPaddress);
 
   if (EstablishConnection())
   {

@@ -7,22 +7,55 @@ Scheduler::Scheduler():Tool()
 
 bool Scheduler::Initialise(std::string configfile, DataModel &data)
 {
-  if(configfile!="") m_variables.Initialise(configfile);
-  //m_variables.Print();
-
   m_data = &data;
   m_log = m_data->Log;
+
+  std::string socket_send;
+  std::string socket_recv;
+  m_data->vars.Get("zmqsocket_send", socket_send);
+  m_data->vars.Get("zmqsocket_recv", socket_recv);
+
+  context = new zmq::context_t(1);
+  zmqsocket_send = new zmq::socket_t(*context, ZMQ_PUSH);
+  zmqsocket_send->connect(socket_send);
+  zmqsocket_recv = new zmq::socket_t(*context, ZMQ_SUB);
+  zmqsocket_recv->connect(socket_recv);
+  zmqsocket_recv->setsockopt(ZMQ_SUBSCRIBE, "", 0);
+
+  bool useGUI = false;
+  m_data->vars.Get("useGUI", useGUI);
+
+  if(useGUI)
+  {
+    zmq::message_t config_msg;
+    std::string config_str;
+    Log("Scheduler: Waiting to receive config from GUI", 1, 1);
+    zmqsocket_recv->recv(&config_msg, 0);
+    config_str = (char*)config_msg.data();
+    Log("scheduler: Received config from GUI!", 1, 1);
+    m_data->vars.JsonParser(config_str);
+  }
+  else
+  {
+    file = new std::ifstream(configfile.c_str());
+    std::string config_str((std::istreambuf_iterator<char>(*file)),
+                           std::istreambuf_iterator<char>());
+    m_data->vars.JsonParser(config_str);
+    Log("Scheduler: Config loaded from file " + configfile, 1, 1);
+    file->close();
+  }
+
+  m_data->vars.Print();
 
   std::string angleRangesString;
   std::string yRangesString;
   double stepSizeAngle;
   double stepSizeY;
-
-  if(!m_variables.Get("verbose",m_verbose)) m_verbose = 1;
-  m_variables.Get("scheduler_stepSizeAngle",stepSizeAngle);
-  m_variables.Get("scheduler_stepSizeY",stepSizeY);
-  m_variables.Get("scheduler_angleRanges",angleRangesString);
-  m_variables.Get("scheduler_yRanges",yRangesString);
+  if(!m_data->vars.Get("verbose", m_verbose)) m_verbose = 1;
+  m_data->vars.Get("stepSizeAngle", stepSizeAngle);
+  m_data->vars.Get("stepSizeY", stepSizeY);
+  m_data->vars.Get("rangesAngle", angleRangesString);
+  m_data->vars.Get("rangesY", yRangesString);
 
   std::vector<std::tuple<double,double>> angleRanges = ParseRanges(angleRangesString);
   std::vector<std::tuple<double,double>> yRanges = ParseRanges(yRangesString);
@@ -33,10 +66,8 @@ bool Scheduler::Initialise(std::string configfile, DataModel &data)
     return false;
   }
 
-  iterAngle.Initialise(stepSizeAngle, angleRanges);
-  iterY.Initialise(stepSizeY, yRanges);
-
-  m_data->mode = state::idle;
+  m_iterAngle.Initialise(stepSizeAngle, angleRanges);
+  m_iterY.Initialise(stepSizeY, yRanges);
 
   stateName[state::idle]     = "idle";
   stateName[state::init]     = "init";
@@ -45,9 +76,7 @@ bool Scheduler::Initialise(std::string configfile, DataModel &data)
   stateName[state::finalise] = "finalise";
   stateName[state::end]      = "end";
 
-  context = new zmq::context_t(1);
-  socket = new zmq::socket_t(*context, ZMQ_PUB);
-  socket->bind("tcp://127.0.0.1:5555");
+  m_data->mode = state::idle;
 
   return true;
 }
@@ -57,37 +86,48 @@ bool Scheduler::Execute()
 
   //std::cout << "(y, angle) = (" << m_data->coord_y << ", " << m_data->coord_angle << ")" << std::endl;
 
-  std::string mstring = "Draw";
-  zmq::message_t msg(mstring.length()+1);
-
   switch (m_data->mode)
   {
     case state::idle:
+    {
       m_data->mode = state::init;
       break;
+    }
 
     case state::init:
+    {
       m_data->mode = state::move;
-      m_data->coord_angle = iterAngle.GetPos();
-      m_data->coord_y = iterY.GetPos();
+      m_data->coord_angle = m_iterAngle.GetPos();
+      m_data->coord_y = m_iterY.GetPos();
       break;
+    }
 
     case state::move:
+    {
       m_data->mode = state::record;
+
       break;
+    }
 
     case state::record:
+    {
       m_data->mode = state::move;
+
+      zmq::message_t msg = ZMQCreateWaveformMessage(m_data->coord_angle, m_data->coord_y, m_data->waveform_PMT, m_data->waveform_PD);
+      zmqsocket_send->send(msg);
+
       if(!UpdateMotorCoords())
         m_data->mode = state::finalise;
-      snprintf ((char *) msg.data(), mstring.length()+1 , "%s" ,mstring.c_str());
-      socket->send(msg);
+
       break;
+    }
 
     case state::finalise:
+    {
       m_data->vars.Set("StopLoop",1);
       m_data->mode = state::end;
       break;
+    }
   }
 
   Log("Scheduler: Starting mode "+stateName[m_data->mode], 1, m_verbose);
@@ -123,9 +163,9 @@ std::vector<std::tuple<double,double>> Scheduler::ParseRanges(std::string ranges
 bool Scheduler::UpdateMotorCoords()
 {
   bool validPosition = true;
-  if(!iterAngle.NextPos())
+  if(!m_iterAngle.NextPos())
   {
-    if(!iterY.NextPos())
+    if(!m_iterY.NextPos())
     {
       validPosition = false;
     }
@@ -133,9 +173,19 @@ bool Scheduler::UpdateMotorCoords()
 
   if(validPosition)
   {
-    m_data->coord_angle = iterAngle.GetPos();
-    m_data->coord_y = iterY.GetPos();
+    m_data->coord_angle = m_iterAngle.GetPos();
+    m_data->coord_y = m_iterY.GetPos();
   }
 
   return validPosition;
+}
+
+zmq::message_t Scheduler::ZMQCreateWaveformMessage(double angle, double ypos, std::vector<double> waveform_PMT, std::vector<double> waveform_PD)
+{
+  std::tuple<double, double, std::vector<double>, std::vector<double>> msgtuple(angle, ypos, waveform_PMT, waveform_PD);
+  msgpack::sbuffer msgtuple_packed;
+  msgpack::pack(&msgtuple_packed, msgtuple);
+  zmq::message_t message(msgtuple_packed.size());
+  std::memcpy(message.data(), msgtuple_packed.data(), msgtuple_packed.size());
+  return message;
 }

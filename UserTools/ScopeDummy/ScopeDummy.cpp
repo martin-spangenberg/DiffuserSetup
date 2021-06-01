@@ -1,20 +1,17 @@
 #include "ScopeDummy.h"
 
-ScopeDummy::ScopeDummy():Tool()
+ScopeDummy::ScopeDummy():Tool(), gaussian(1.,0.2)
 {
 
 }
 
 bool ScopeDummy::Initialise(std::string configfile, DataModel &data)
 {
-  if(configfile!="")  m_variables.Initialise(configfile);
-  //m_variables.Print();
-
   m_data = &data;
   m_log = m_data->Log;
 
-  if(!m_variables.Get("verbose",m_verbose)) m_verbose = 1;
-  m_variables.Get("scope_IPaddress", m_IPaddress);
+  if(!m_data->vars.Get("verbose",m_verbose)) m_verbose = 1;
+  m_data->vars.Get("scope_IP", m_IPaddress);
 
   if (EstablishConnection())
   {
@@ -70,6 +67,8 @@ bool ScopeDummy::GetWaveform(std::vector<double> &waveform)
 
   float yzero = 0.; // Y zero position - Must be added as step 3
 
+  scalingfactor = gaussian(generator);
+
   int entries = 10000;
   double sigma = 100;
   double mean = 5000;
@@ -77,7 +76,7 @@ bool ScopeDummy::GetWaveform(std::vector<double> &waveform)
   for(int i=0; i<entries; ++i)
   {
     time = i;
-    waveform.push_back(1/(sigma*sqrt(2*M_PI))*exp(-(time-mean)*(time-mean)/(2*sigma*sigma)));
+    waveform.push_back(scalingfactor * -1/(sigma*sqrt(2*M_PI))*exp(-(time-mean)*(time-mean)/(2*sigma*sigma)));
   }
 
   return true;

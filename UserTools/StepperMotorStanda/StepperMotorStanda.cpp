@@ -7,15 +7,12 @@ StepperMotorStanda::StepperMotorStanda():Tool()
 
 bool StepperMotorStanda::Initialise(std::string configfile, DataModel &data)
 {
-  if(configfile!="") m_variables.Initialise(configfile);
-  //m_variables.Print();
-
   m_data = &data;
   m_log = m_data->Log;
 
-  if(!m_variables.Get("verbose",m_verbose)) m_verbose = 1;
-  if(!m_variables.Get("linmotor_steps_per_unit", steps_per_unit)) steps_per_unit = 1;
-  m_variables.Get("linmotor_device_name", m_device_name);
+  if(!m_data->vars.Get("verbose",m_verbose)) m_verbose = 1;
+  if(!m_data->vars.Get("linmotor_steps_unit", steps_per_unit)) steps_per_unit = 1;
+  m_data->vars.Get("linmotor_devicename", m_device_name);
 
   if (EstablishUSB()) {
     SetStepsPerUnit(steps_per_unit);
@@ -33,14 +30,14 @@ bool StepperMotorStanda::Execute()
 
   float position;
 
- switch (m_data->mode)
+  switch (m_data->mode)
   {
     case state::move:
 
-      //Move(m_data->coord_y);
+      Move(m_data->coord_y);
 
-      GetCurrentPosition(position);
-      std::cout << "Position after move: " << position << std::endl;
+      // GetCurrentPosition(position);
+      // std::cout << "Position after move: " << position << std::endl;
 
       break;
   }

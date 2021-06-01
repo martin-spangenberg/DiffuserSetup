@@ -8,13 +8,15 @@ RootInclude = `root-config --cflags`
 ZMQLib= -L $(ToolDAQPath)/zeromq-4.0.7/lib -lzmq 
 ZMQInclude= -I $(ToolDAQPath)/zeromq-4.0.7/include/ 
 
+MSGPackInclude = -I $(ToolDAQPath)/msgpack-3.3.0/include/
+
 BoostLib= -L $(ToolDAQPath)/boost_1_66_0/install/lib -lboost_date_time -lboost_serialization -lboost_iostreams
 BoostInclude= -I $(ToolDAQPath)/boost_1_66_0/install/include
 
 DataModelLib=  $(RootLib)
 DataModelInclude= $(RootInclude)
 
-MyToolsInclude = $(RootInclude) -I /usr/include/ni-visa/
+MyToolsInclude = $(RootInclude) $(MSGPackInclude) -I /usr/include/ni-visa/
 MyToolsLib = $(RootLib) /usr/lib/x86_64-linux-gnu/libvisa.so -lximc 
 
 

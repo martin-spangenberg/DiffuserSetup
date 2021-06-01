@@ -7,14 +7,11 @@ Scope::Scope():Tool()
 
 bool Scope::Initialise(std::string configfile, DataModel &data)
 {
-  if(configfile!="")  m_variables.Initialise(configfile);
-  //m_variables.Print();
-
   m_data = &data;
   m_log = m_data->Log;
 
-  if(!m_variables.Get("verbose",m_verbose)) m_verbose = 1;
-  m_variables.Get("scope_IPaddress", m_IPaddress);
+  if(!m_data->vars.Get("verbose",m_verbose)) m_verbose = 1;
+  m_data->vars.Get("scope_IP", m_IPaddress);
 
   if (EstablishConnection())
   {
@@ -38,6 +35,8 @@ bool Scope::Execute()
   {
     case state::record:
       Log("ScopeDummy: Getting waveform from scope", 1, m_verbose);
+
+      sleep(55);
 
       std::vector<double> waveform;
       GetWaveform(waveform);
@@ -111,6 +110,11 @@ bool Scope::GetWaveform(std::vector<double> &waveform)
 
   std::cout << "Size of buffer in bytes: " << io_bytes << std::endl;
 
+  //std::ofstream binfile("binfile.txt", std::ios::out | std::ios::binary);
+  //binfile.write((char*)buffer, size);
+  //binfile.write(reinterpret_cast<char*> (&ch), sizeof(ch));
+  //binfile.close();
+
   char numdigits[1];
   strncat(numdigits, &(buffer[1]), 1); // Second byte contains number of additional digits in header
   int startpos = atoi(numdigits) + 2;
@@ -163,7 +167,7 @@ bool Scope::InitSetup()
   WriteVISA("TRIGGER:A:EDGE:COUPLING DC");
   WriteVISA("TRIGGER:A:EDGE:SLOPE RISE");
   WriteVISA("TRIGGER:A:EDGE:SOURCE CH1");
-  WriteVISA("TRIGGER:A:LEVEL 2.0");
+  WriteVISA("TRIGGER:A:LEVEL 0.5"); // Was previously 2.0
 
   WriteVISA("DATA:ENCDG SRIBINARY"); //SFPBINARY / SRIBINARY / ASCII
   WriteVISA("DATA:SOURCE CH2");

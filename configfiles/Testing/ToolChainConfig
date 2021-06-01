@@ -28,3 +28,7 @@ Inline -1 ## number of Execute steps in program, -1 infinite loop that is ended 
 Interactive 0 ## set to 1 if you want to run the code interactively
 Remote 0  ## set to 1 if you want to run the code remotely
 
+##### GUI #####
+useGUI 1 ## Will wait for start signal from GUI if set to 1. If set to 0, Scheduler will use its config file defined in ToolsConfig
+zmqsocket_send tcp://127.0.0.1:5555 ## ZMQ socket that sends data to GUI
+zmqsocket_recv tcp://127.0.0.1:5556 ## ZMQ socket that received data from GUI

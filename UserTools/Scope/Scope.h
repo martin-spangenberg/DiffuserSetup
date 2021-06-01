@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <vector>
+#include <stdio.h>
 
 #include "Tool.h"
 

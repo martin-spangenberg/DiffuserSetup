@@ -11,6 +11,7 @@
 #include <vector>
 #include <math.h>
 #include <cmath>
+#include <random>
 #define _USE_MATH_DEFINES
 
 #include "Tool.h"
@@ -49,6 +50,10 @@ class ScopeDummy: public Tool {
   const ViUInt32 buffer_size_B = 100000;
   ViChar buffer[100000];
   ViUInt32 io_bytes;
+
+  std::default_random_engine generator;
+  std::normal_distribution<double> gaussian;
+  double scalingfactor;
 
 };
 

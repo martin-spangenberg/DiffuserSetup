@@ -7,9 +7,6 @@ Writer::Writer():Tool()
 
 bool Writer::Initialise(std::string configfile, DataModel &data)
 {
-  if(configfile!="")  m_variables.Initialise(configfile);
-  //m_variables.Print();
-
   //////////////////////////
   // Output format version//
   //////////////////////////
@@ -22,15 +19,15 @@ bool Writer::Initialise(std::string configfile, DataModel &data)
   m_data = &data;
   m_log = m_data->Log;
 
-  if(!m_variables.Get("verbose", m_verbose)) m_verbose = 1;
-  if(!m_variables.Get("writer_filename", m_fileName)) m_fileName = "diffuser.root";
-  if(!m_variables.Get("writer_treename", m_treeName)) m_treeName = "diffuser";
-  m_variables.Get("writer_ID_diffuser", ID_diffuser);
-  m_variables.Get("writer_ID_PMT", ID_PMT);
-  m_variables.Get("writer_ID_PD", ID_PD);
-  m_variables.Get("writer_ID_lightsource", ID_lightsource);
-  m_variables.Get("writer_ID_experimentalist", ID_experimentalist);
-  m_variables.Get("writer_notes", notes);
+  if(!m_data->vars.Get("verbose", m_verbose)) m_verbose = 1;
+  if(!m_data->vars.Get("rootfilename", m_fileName)) m_fileName = "diffuser.root";
+  if(!m_data->vars.Get("treename", m_treeName)) m_treeName = "diffuser";
+  ID_diffuser = *m_data->vars["ID_diffuser"];
+  ID_PMT = *m_data->vars["ID_PMT"];
+  ID_PD = *m_data->vars["ID_PD"];
+  ID_lightsource = *m_data->vars["ID_lightsource"];
+  ID_experimentalist = *m_data->vars["ID_experimentalist"];
+  notes = *m_data->vars["notes"];
 
   file = new TFile(m_fileName.c_str(), "RECREATE");
   tree = new TTree(m_treeName.c_str(),m_treeName.c_str());
