@@ -1,9 +1,11 @@
 import wx
 import wx.lib.scrolledpanel
+import wx.lib.newevent
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
 from matplotlib.figure import Figure
+import matplotlib.patches as patches
 #from matplotlib.backends.backend_wx import NavigationToolbar2Wx
 #matplotlib.use('WXAgg')
 #from wx.lib.masked import NumCtrl
@@ -14,10 +16,8 @@ import zmq
 import json
 import msgpack
 
-#TODO
-# - Make heat map for PMT
 
-
+PlotEvent, EVT_PLOTEVENT = wx.lib.newevent.NewEvent()
 
 class PlotPanel(wx.Panel):
     def __init__(self, parent, title="", xlabel="", ylabel="", xlimits=[0,1], ylimits=[0,1]):
@@ -46,6 +46,11 @@ class PlotPanel(wx.Panel):
         self.background = self.canvas.copy_from_bbox(self.axes.bbox)
         self.Fit()
 
+    def drawEvent(self, event):
+        if event.waveform is None:
+           return
+        self.draw(event.waveform)
+
     def draw(self, waveform):
         self.axes.clear()
         self.axes.set_xlabel(self.xlabel)
@@ -69,14 +74,8 @@ class HeatmapPanel(wx.Panel):
     def __init__(self, parent, title="", xlabel="", ylabel="", zlabel=""):
         wx.Panel.__init__(self, parent)
 
-        self.peakarray = np.array([[0, 0],
-                                   [0, 0]])
+        self.parent = parent
 
-        self.xcoords = np.array([0, 1])
-        self.ycoords = np.array([0, 1])
-
-        self.xlabel = xlabel
-        self.ylabel = ylabel
         self.zlabel = zlabel
 
         self.figure = Figure()
@@ -85,25 +84,27 @@ class HeatmapPanel(wx.Panel):
 
         self.axes = self.figure.add_subplot(1,1,1)
         self.axes.set_title(title)
-        self.axes.set_xlabel(self.xlabel)
-        self.axes.set_ylabel(self.ylabel)
-
-        self.image = self.axes.imshow(self.peakarray, cmap="RdBu",\
-                                      extent=[self.xcoords[0], self.xcoords[-1], self.ycoords[0], self.ycoords[-1]],\
-                                      origin="lower", aspect="auto")
-        self.cbar = self.axes.figure.colorbar(self.image, ax=self.axes)
-        self.cbar.ax.set_ylabel(self.zlabel, rotation=-90, va="bottom")
+        self.axes.set_xlabel(xlabel)
+        self.axes.set_ylabel(ylabel)
 
         self.canvas = FigureCanvas(self, -1, self.figure)
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.sizer.Add(self.canvas, 1, wx.LEFT | wx.TOP | wx.GROW)
         self.SetSizer(self.sizer)
-        self.Fit()
+        #self.Fit()
+
+        self.resizeGrid([0,1], [0,1], 1, 1)
+
+        self.cid = self.canvas.mpl_connect('button_press_event', self)
 
     def resizeGrid(self, rangeX, rangeY, stepSizeX, stepSizeY):
+        self.stepSizeX = stepSizeX
+        self.stepSizeY = stepSizeY
+
         nGridX = math.ceil(abs(rangeX[1]-rangeX[0])/stepSizeX)+1
         nGridY = math.ceil(abs(rangeY[1]-rangeY[0])/stepSizeY)+1
-        self.peakarray = np.zeros((nGridY, nGridX))
+        self.peakArray = np.zeros((nGridY, nGridX))
+        self.waveformArray = np.ndarray(shape=(nGridX,nGridY),dtype=object)
 
         self.xcoords = np.array([rangeX[0] + i*stepSizeX for i in range(nGridX)])
         self.ycoords = np.array([rangeY[0] + i*stepSizeY for i in range(nGridY)])
@@ -111,14 +112,19 @@ class HeatmapPanel(wx.Panel):
         plotranges = [self.xcoords[0]-stepSizeX/2., self.xcoords[-1]+stepSizeX/2.,\
                       self.ycoords[0]-stepSizeY/2., self.ycoords[-1]+stepSizeY/2.]       
 
-        self.image = self.axes.imshow(self.peakarray, cmap="RdBu",\
+        self.image = self.axes.imshow(self.peakArray, cmap="RdBu",\
                                       extent=plotranges, origin="lower", aspect="auto")
+
+        if not hasattr(self, 'cbar'):
+            self.cbar = self.axes.figure.colorbar(self.image, ax=self.axes)
+            self.cbar.ax.set_ylabel(self.zlabel, rotation=-90, va="bottom")
+
         self.canvas.draw()
         self.Update()
 
     def draw(self):
-        self.image.set_data(self.peakarray)
-        self.image.set_clim(np.amin(self.peakarray), np.amax(self.peakarray))
+        self.image.set_data(self.peakArray)
+        self.image.set_clim(np.amin(self.peakArray), np.amax(self.peakArray))
         self.cbar.remove()
         self.cbar = self.axes.figure.colorbar(self.image, ax=self.axes)
         self.cbar.ax.set_ylabel(self.zlabel, rotation=-90, va="bottom")
@@ -129,9 +135,24 @@ class HeatmapPanel(wx.Panel):
         peakvalue = np.amin(waveform)
         x_i = (np.abs(self.xcoords - xval)).argmin()
         y_i = (np.abs(self.ycoords - yval)).argmin()
-        self.peakarray[y_i, x_i] = peakvalue
+        self.peakArray[y_i, x_i] = peakvalue
+        self.waveformArray[x_i, y_i] = waveform
         self.draw()
 
+    def __call__(self,event):
+        if event.inaxes != self.axes:
+            return
+        x_i = (np.abs(self.xcoords - event.xdata)).argmin()
+        y_i = (np.abs(self.ycoords - event.ydata)).argmin()
+
+        self.axes.patches = []
+        rect = patches.Rectangle((self.xcoords[x_i]-self.stepSizeX/2, self.ycoords[y_i]-self.stepSizeY/2),\
+                                 self.stepSizeX, self.stepSizeY, linewidth=2, edgecolor='g', facecolor='none')
+        self.axes.add_patch(rect)
+        self.canvas.draw()
+
+        plotevent = PlotEvent(waveform=self.waveformArray[x_i, y_i])
+        wx.PostEvent(self.parent, plotevent)
 
 class RangePanel(wx.Panel):
     def __init__(self, parent, title="", height=100, rows=1):
@@ -225,9 +246,9 @@ class RangePanel(wx.Panel):
         self.field_stepsize.SetValue(value)
 
 
-class myframe(wx.Frame):
+class GUI(wx.Frame):
     def __init__(self, *args, **kwargs):
-        super(myframe, self).__init__(*args, **kwargs)
+        super(GUI, self).__init__(*args, **kwargs)
 
         # ZMQ sockets
         self.context = zmq.Context(1)
@@ -268,9 +289,11 @@ class myframe(wx.Frame):
         # Plots and buttons
         ####################################################
 
-        self.plotpanel = PlotPanel(self, title="Waveforms", xlabel="Time", ylabel="Signal [V]", xlimits=[0,10000], ylimits=[-0.04,0.01])
+        self.plotpanel = PlotPanel(self, title="Waveforms", xlabel="Time", ylabel="Signal [V]", xlimits=[0,10000], ylimits=[-6,0])
         self.heatmappanel = HeatmapPanel(self, title="Waveform peak values",
                                          xlabel="Angle [°]", ylabel="Height [mm]", zlabel="Signal peak [V]")
+
+        self.Bind(EVT_PLOTEVENT, self.plotpanel.drawEvent)
 
         self.button_start = wx.Button(self, wx.ID_ANY, "Start", size=(100,80))
         self.Bind(wx.EVT_BUTTON, self._startstopProgram, self.button_start)
@@ -283,7 +306,7 @@ class myframe(wx.Frame):
         self.angleRangePanel = RangePanel(self, title="Angle ranges (°)", height=150)
         self.yRangePanel = RangePanel(self, title="Height ranges (mm)", height=150)
 
-        txt_size = (100,20)
+        txt_size = (125,20)
 
         self.dict_output = {
             "rootfilename"       : [wx.StaticText(self, label="File name"), wx.TextCtrl(self, size=txt_size)],
@@ -483,7 +506,7 @@ if __name__ == "__main__":
 
     app = wx.App()
 
-    theframe = myframe(None, title='Diffuser Scan', size=wx.Size(1000, 1000))
-    theframe.Show()
+    theGUI = GUI(None, title='Diffuser Scan', size=wx.Size(1000, 1000))
+    theGUI.Show()
 
     app.MainLoop()
