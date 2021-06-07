@@ -61,21 +61,12 @@ class PlotPanel(wx.Panel):
         self.canvas.draw()
         self.Update()
 
-    # def draw(self, waveform):
-    #     self.canvas.restore_region(self.background)
-    #     self.line.set_ydata(waveform)
-    #     self.axes.draw_artist(self.line)
-    #     self.canvas.blit(self.axes.bbox)
-    #     #self.canvas.flush_events()
-    #     self.Update()
-
 
 class HeatmapPanel(wx.Panel):
     def __init__(self, parent, title="", xlabel="", ylabel="", zlabel=""):
         wx.Panel.__init__(self, parent)
 
         self.parent = parent
-
         self.zlabel = zlabel
 
         self.figure = Figure()
@@ -123,6 +114,7 @@ class HeatmapPanel(wx.Panel):
         self.Update()
 
     def draw(self):
+        self.axes.patches = []
         self.image.set_data(self.peakArray)
         self.image.set_clim(np.amin(self.peakArray), np.amax(self.peakArray))
         self.cbar.remove()
@@ -153,6 +145,7 @@ class HeatmapPanel(wx.Panel):
 
         plotevent = PlotEvent(waveform=self.waveformArray[x_i, y_i])
         wx.PostEvent(self.parent, plotevent)
+
 
 class RangePanel(wx.Panel):
     def __init__(self, parent, title="", height=100, rows=1):
