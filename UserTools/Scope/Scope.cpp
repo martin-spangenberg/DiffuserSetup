@@ -34,14 +34,14 @@ bool Scope::Execute()
  switch(m_data->mode)
   {
     case state::record:
-      Log("ScopeDummy: Getting waveform from scope", 1, m_verbose);
+      Log("Scope: Getting waveform from scope", 1, m_verbose);
 
-      sleep(55);
+      sleep(1);
 
       std::vector<double> waveform;
       GetWaveform(waveform);
 
-      Log("ScopeDummy: Waveform size: "+std::to_string(waveform.size()), 1, m_verbose);
+      Log("Scope: Waveform size: "+std::to_string(waveform.size()), 1, m_verbose);
 
       m_data->waveform_PMT = waveform;
 
@@ -98,7 +98,7 @@ bool Scope::GetWaveform(std::vector<double> &waveform)
   float yzero = std::stof(output); // Y zero position - Must be added as step 3
 
   WriteVISA("CURVE?");
-  ViStatus status = viRead(m_instrument, (unsigned char*)buffer, buffer_size_B, &io_bytes);
+  ViStatus status = viRead(m_instrument, reinterpret_cast<unsigned char*> (&buffer), buffer_size_B, &io_bytes);
 
   if(!CheckStatus(status)) return false;
 
@@ -110,25 +110,26 @@ bool Scope::GetWaveform(std::vector<double> &waveform)
 
   std::cout << "Size of buffer in bytes: " << io_bytes << std::endl;
 
-  //std::ofstream binfile("binfile.txt", std::ios::out | std::ios::binary);
+  std::fstream binfile("binfile.txt", std::ios::out | std::ios::binary);
   //binfile.write((char*)buffer, size);
-  //binfile.write(reinterpret_cast<char*> (&ch), sizeof(ch));
-  //binfile.close();
+  binfile.write(reinterpret_cast<char*> (&buffer), size);
+  binfile.close();
 
   char numdigits[1];
   strncat(numdigits, &(buffer[1]), 1); // Second byte contains number of additional digits in header
   int startpos = atoi(numdigits) + 2;
   int entries = (size - startpos) / 2; // Each entry is 2 bytes long
 
-  std::cout << "Number of entries: " << std::endl;
+  //std::cout << "Number of entries: " << std::endl;
 
-  int16_t point;
-  //float point;
+  int16_t point = 0;
+  int16_t lastpoint = 0;
   for(int i=0; i<entries; ++i)
   {
+    lastpoint = point;
     point = 0; // Reset point, otherwise strncat will not overwrite previous data
-    //strncat((char*)&point, &(buffer[startpos+i*4]), 4); // Copy next four bytes to point
     strncat((char*)&point, &(buffer[startpos+i*2]), 2); // Copy next two bytes to point
+    if(point == 0) point = lastpoint;
     waveform.push_back((point - yoff) * ymult + yzero);
   }
 
