@@ -36,8 +36,8 @@ bool StepperMotorStanda::Execute()
 
       Move(m_data->coord_y);
 
-      // GetCurrentPosition(position);
-      // std::cout << "Position after move: " << position << std::endl;
+      //GetCurrentPosition(position);
+      //std::cout << "Position after move: " << position << std::endl;
 
       break;
   }

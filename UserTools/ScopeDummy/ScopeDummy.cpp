@@ -76,7 +76,7 @@ bool ScopeDummy::GetWaveform(std::vector<double> &waveform)
   for(int i=0; i<entries; ++i)
   {
     time = i;
-    waveform.push_back(scalingfactor * -1/(sigma*sqrt(2*M_PI))*exp(-(time-mean)*(time-mean)/(2*sigma*sigma)));
+    waveform.push_back(1000. * scalingfactor * -1/(sigma*sqrt(2*M_PI))*exp(-(time-mean)*(time-mean)/(2*sigma*sigma)));
   }
 
   return true;
