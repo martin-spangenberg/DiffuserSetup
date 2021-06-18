@@ -62,7 +62,7 @@ template<typename T> PyObject* GetStoreVariable(std::string variablename, T temp
   /// get the format string describing the python type
   const char* python_type = typename_to_python_type.at(thetypename).c_str();
   // get the variable from the BoostStore
-  if(isvector){
+  if(!isvector){
     if(isptr){
       // if the type in the BoostStore is actually a pointer to this type of object
       // we need to copy it to a temporary
@@ -103,7 +103,7 @@ template<typename T> PyObject* GetStoreVariable(std::string variablename, T temp
 template<>
 inline PyObject* GetStoreVariable<std::string>(std::string variablename, std::string tempvar, bool isptr, bool isvector){
   // get the variable from the BoostStore
-  if(isvector){
+  if(!isvector){
     if(isptr){
       // if the type in the BoostStore is actually a pointer to this type of object
       // we need to copy it to a temporary
