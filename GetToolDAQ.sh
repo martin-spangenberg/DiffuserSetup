@@ -6,7 +6,7 @@ boostflag=1
 zmq=1
 msgpack=1
 final=1
-rootflag=0
+rootflag=1
 
 while [ ! $# -eq 0 ]
 do
@@ -138,15 +138,11 @@ fi
 if [ $rootflag -eq 1 ]
 then
     
-    wget https://root.cern.ch/download/root_v5.34.34.source.tar.gz
-    tar zxvf root_v5.34.34.source.tar.gz
-    rm -rf root_v5.34.34.source.tar.gz
+    wget https://root.cern/download/root_v6.24.00.Linux-ubuntu20-x86_64-gcc9.3.tar.gz
+    tar -xvzf root_v6.24.00.Linux-ubuntu20-x86_64-gcc9.3.tar.gz
+    rm -rf root_v6.24.00.Linux-ubuntu20-x86_64-gcc9.3.tar.gz
     cd root
-    
-    ./configure --enable-rpath
-    make -j8
-    make install
-    
+
     source ./bin/thisroot.sh
     
     cd ../
@@ -158,7 +154,7 @@ then
 
     git clone https://github.com/msgpack/msgpack-c.git msgpack-3.3.0
     cd msgpack-3.3.0
-    git checkout cpp_master
+    git checkout cpp-3.3.0
 fi
 
 cd ../
