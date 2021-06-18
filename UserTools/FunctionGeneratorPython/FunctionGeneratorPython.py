@@ -4,39 +4,20 @@ import pyvisa
 import time
 
 def Initialise(var):
-    global channel
-    global shape
-    global cycles
-    global frequency
-    global Vmin
-    global Vmax
-    global IPaddress
-    global visaman
-    global instrument
-
-    m_channel = 1
-    m_shape = "SQUARE"
-    m_cycles = 100
-    m_frequency = 2000
-    m_Vmin = 0.
-    m_Vmax = 5.
-    m_IPaddress = 137.205.188.34
-
-    # m_channel = Store.GetStoreVariable("CStore", "funcgen_channel")
-    # m_shape = Store.GetStoreVariable("CStore", "funcgen_shape")
-    # m_cycles = Store.GetStoreVariable("CStore", "funcgen_cycles")
-    # m_frequency = Store.GetStoreVariable("CStore", "funcgen_frequency")    
-    # m_Vmin = Store.GetStoreVariable("CStore", "funcgen_Vmin")
-    # m_Vmax = Store.GetStoreVariable("CStore", "funcgen_Vmax")
-    # m_IPaddress = Store.GetStoreVariable("CStore", "funcgen_IPaddress")
-
-    visaman = pyvisa.ResourceManager('@py')
+    global m_channel;   m_channel   = Store.GetStoreVariable("CStore", "funcgen_channel")
+    global m_shape;     m_shape     = Store.GetStoreVariable("CStore", "funcgen_shape")
+    global m_cycles;    m_cycles    = Store.GetStoreVariable("CStore", "funcgen_cycles")
+    global m_frequency; m_frequency = Store.GetStoreVariable("CStore", "funcgen_frequency")
+    global m_Vmin;      m_Vmin      = Store.GetStoreVariable("CStore", "funcgen_Vmin")
+    global m_Vmax;      m_Vmax      = Store.GetStoreVariable("CStore", "funcgen_Vmax")
+    global m_IPaddress; m_IPaddress = Store.GetStoreVariable("CStore", "funcgen_IPaddress")
+    global visaman;     visaman     = pyvisa.ResourceManager('@py')
 
     try:
-        instrument = visaman.open_resource("TCPIP::"+m_IPaddress+"::INSTR")
+       global m_instrument; m_instrument = visaman.open_resource("TCPIP::"+m_IPaddress+"::INSTR")
     except:
-        print("FunctionGeneratorPython: Cold not connect to instrument at IP "+m_IPaddress+"!!")
-        return 0
+       print("FunctionGeneratorPython: Cold not connect to instrument at IP "+m_IPaddress+"!!")
+       return 0
 
     InitSetup()
     SetShape(m_shape)
@@ -57,12 +38,9 @@ def Execute():
 
     if state == "record":
         SendTrigger()
+        #print("FunctionGeneratorPython: Sending trigger")
         time.sleep(1)
 
-
-    # Store.SetInt('a',6)
-    # Store.SetDouble('b',8.0)
-    # Store.SetString('c','hello')
     return 1
 
 def InitSetup():
