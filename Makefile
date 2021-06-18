@@ -10,14 +10,16 @@ ZMQInclude= -I $(ToolDAQPath)/zeromq-4.0.7/include/
 
 MSGPackInclude = -I $(ToolDAQPath)/msgpack-3.3.0/include/
 
-BoostLib= -L $(ToolDAQPath)/boost_1_66_0/install/lib -lboost_date_time -lboost_serialization -lboost_iostreams -lboost_system
+BoostLib= -L $(ToolDAQPath)/boost_1_66_0/install/lib -lboost_date_time -lboost_serialization -lboost_iostreams -lboost_system -lboost_regex
 BoostInclude= -I $(ToolDAQPath)/boost_1_66_0/install/include
 
 DataModelLib=  $(RootLib)
 DataModelInclude= $(RootInclude)
 
-MyToolsInclude = `python3.8-config --cflags` $(RootInclude) $(MSGPackInclude) #-I /usr/include/ni-visa/
-MyToolsLib = `python3.8-config --libs` $(RootLib) -lximc #/usr/lib/x86_64-linux-gnu/libvisa.so 
+MyToolsInclude = `python3.6-config --cflags` $(RootInclude) $(MSGPackInclude)
+MyToolsLib = `python3.6-config --libs` $(RootLib) -lximc
+#MyToolsInclude = `python3.8-config --cflags` $(RootInclude) $(MSGPackInclude) -I /usr/include/ni-visa/
+#MyToolsLib = `python3.8-config --libs` $(RootLib) /usr/lib/x86_64-linux-gnu/libvisa.so -lximc
 
 
 all: lib/libStore.so lib/libLogging.so lib/libDataModel.so include/Tool.h lib/libMyTools.so lib/libServiceDiscovery.so lib/libToolChain.so main RemoteControl  NodeDaemon
