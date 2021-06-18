@@ -1,7 +1,6 @@
 #ifndef ScopeDummy_H
 #define ScopeDummy_H
 
-#include "visa.h"
 #include <string>
 #include <iostream>
 #include <unistd.h>
@@ -43,13 +42,8 @@ class ScopeDummy: public Tool {
 
   int m_verbose; // Verbosity
   std::string m_IPaddress; // IP address of instrument
-  ViSession m_resource_manager;
-  ViSession m_instrument; // VISA instrument reference
 
   // Communication buffers
-  const ViUInt32 buffer_size_B = 100000;
-  ViChar buffer[100000];
-  ViUInt32 io_bytes;
 
   std::default_random_engine generator;
   std::normal_distribution<double> gaussian;

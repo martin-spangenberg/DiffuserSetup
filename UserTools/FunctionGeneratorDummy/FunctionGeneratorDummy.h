@@ -1,7 +1,6 @@
 #ifndef FunctionGeneratorDummy_H
 #define FunctionGeneratorDummy_H
 
-#include "visa.h"
 #include <string>
 #include <iostream>
 #include <unistd.h>
@@ -39,20 +38,12 @@ class FunctionGeneratorDummy: public Tool {
 
   int m_verbose; // Verbosity
   std::string m_IPaddress; // IP address of instrument
-  ViSession m_resource_manager;
-  ViSession m_instrument; // VISA instrument reference
   int m_channel; // Output channel to use
   std::string m_shape; // Shape of function. Valid options: SINUSOID, SQUARE, PULSE, RAMP 
   int m_cycles; // Number of function cycles in burst
   float m_frequency; // Frequency of function in Hz
   float m_Vmin;
   float m_Vmax;
-
-  // Communication buffers
-  const ViUInt32 buffer_size_B = 1000;
-  ViChar buffer[1000];
-  ViUInt32 io_bytes;
-
 
 
 };
