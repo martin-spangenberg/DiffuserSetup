@@ -4,6 +4,7 @@ init=1
 tooldaq=1
 boostflag=1
 zmq=1
+msgpack=1
 final=1
 rootflag=0
 
@@ -150,6 +151,14 @@ then
     
     cd ../
     
+fi
+
+if [ $msgpack -eq 1 ]
+then
+
+    git clone https://github.com/msgpack/msgpack-c.git msgpack-3.3.0
+    cd msgpack-3.3.0
+    git checkout cpp_master
 fi
 
 cd ../
