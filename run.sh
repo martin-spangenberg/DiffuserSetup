@@ -1,2 +1,2 @@
-./main configfiles/Testing/ToolChainConfig &
-python3 GUI/GUI.py
+python3 GUI/GUI.py &
+./main configfiles/Testing/ToolChainConfig
