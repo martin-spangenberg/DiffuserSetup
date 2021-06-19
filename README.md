@@ -52,8 +52,20 @@ make clean
 make
 ```
 
-### Running the code:
-To start the program, simply execute
+### Running the DAQ program:
+To run the program, simply execute:
 ```
+source Setup.sh
 ./run.sh
 ```
+
+## Notes
+
+Python API bindings have changed in newer versions, hence Python 3.6 needs to be installed in order to compile and run the DAQ program. If the user wants to import the ROOT module in Python then version 3.8 must be used instead, since the ROOT 6 binary has been compiled for this version. Python 3.8 is installed by default on Ubuntu 20.04.
+
+### Driver details
+The PMT vertical position is adjusted with a linear stepper motor controlled through a dedicated USB-connected controller from Standa. It requires the libximc library.
+
+The Tektronix function generator triggering the laser and digitizer is controlled with VISA serial commands over TCP/IP. The code previously used the National Instruments VISA drivers (NI-VISA). Unfortunately, the source code for these kernel drivers is not available, and hence compatibility is limited to a few specific Linux kernel versions and distributions for which National Instruments have provided pre-compiled drivers. NI-VISA was therefore dropped in favour of PyVISA with a pure Python backend, which can be installed easily with pip commands.
+
+Kernel drivers are required in order to communicate with the Spectrum PCIe digitizer card. Pre-compiled drivers are available for a limited number of kernel versions. Spectrum has provided us with a copy of the driver source code but we are not allowed to distribute it, so it is not included in this repository. A copy has been physically placed alongside the manual and other software for the digitizer. The source code does not compile on CentOS, but Ubuntu 20.04 and OpenSUSE Leap 15.x are compatible.
