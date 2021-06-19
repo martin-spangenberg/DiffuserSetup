@@ -19,10 +19,94 @@ static std::map<std::string,std::string> typename_to_python_type{{"int","i"},{"l
 
 static DataModel* gstore;        // m_data, set in PythonScript.cpp
 static Store* gconfig;           // the Store containing the current script's config variables
-static BoostStore* activestore;  // the Store within m_data requested by the python user
+/*static BoostStore* activestore;  // the Store within m_data requested by the python user*/
+
+struct StoreWrapper{
+  StoreWrapper(){};
+  StoreWrapper(BoostStore* sin) : boost_store(sin){};
+  StoreWrapper(Store* sin) : ascii_store(sin){};
+  BoostStore* boost_store;
+  Store* ascii_store;
+  
+  // BoostStores can Get/Set a far greater variety of classes,
+  // while ASCII stores can only Get/Set those with a suitable ASCII streamer operator.
+  // We need to prevent the compiler from trying to generate functions that invoke
+  // Get/Set on an ASCII store with an unsupported type. We'll use a tag dispatch method.
+  template <typename T>
+  bool Get(std::true_type, std::string name, T& value){
+    //std::cout<<"StoreWrapper::Get called on a universally supported type"
+    //         <<boost::core::demangle(typeid(value).name())<<std::endl;
+    if(boost_store) return boost_store->Get(name,value);
+    else if(ascii_store) return ascii_store->Get(name,value);
+    else { std::cerr<<"Get call on uninitialized StoreWrapper!"<<std::endl; return false; }
+  };
+  template <typename T>
+  bool Get(std::false_type, std::string name, T& value){
+    //std::cout<<"StoreWrapper::Get called on non-ASCII type "
+    //         <<boost::core::demangle(typeid(value).name())<<std::endl;
+    if(boost_store){ return boost_store->Get(name,value);
+    } else if(ascii_store){
+      std::cerr<<"StoreWrapper::Get called to return object of type "
+               <<boost::core::demangle(typeid(value).name())
+               <<" but requested store is an ASCII store, and cannot store objects of this type"<<std::endl;
+      return false;
+    } else {
+      std::cerr<<"Get call on uninitialized StoreWrapper!"<<std::endl;
+      return false;
+    }
+  };
+  template <typename T>
+  bool Get(std::string name, T& value){
+    constexpr bool t_is_ascii_compatible = 
+        std::is_fundamental<T>::value || std::is_same<T, std::string>::value;
+    using tag = std::integral_constant<bool, t_is_ascii_compatible>;
+    //std::cout<<"StoreWrapper Get called with type "<<boost::core::demangle(typeid(value).name())
+    //         <<" with tag "<<boost::core::demangle(typeid(tag).name())<<std::endl;
+    return StoreWrapper::Get(tag{}, name, value);
+  }
+  
+  template<typename T>
+  void Set(std::true_type, std::string name, T& value){
+    if(boost_store) boost_store->Set(name,value);
+    else if(ascii_store) ascii_store->Set(name,value);
+    else std::cerr<<"Set call on uninitialized StoreWrapper!"<<std::endl;
+  };
+  template<typename T>
+  void Set(std::false_type, std::string name, T& value){
+    if(boost_store){ boost_store->Set(name,value);
+    } else if(ascii_store){
+      std::cerr<<"StoreWrapper::Set called to set object of type "<<boost::core::demangle(typeid(value).name())
+               <<" but requested store is an ASCII store, and cannot store objects of this type"<<std::endl;
+    } else {
+      std::cerr<<"Set call on uninitialized StoreWrapper!"<<std::endl;
+    }
+  };
+  template <typename T>
+  void Set(std::string name, T& value){
+    constexpr bool t_is_ascii_compatible = 
+        std::is_fundamental<T>::value || std::is_same<T, std::string>::value;
+    using tag = std::integral_constant<bool, t_is_ascii_compatible>;
+    StoreWrapper::Set(tag{}, name, value);
+  }
+  
+  std::string Type(std::string name){
+    if(boost_store){ return boost_store->Type(name); }
+    else { return "unsupported by ASCII stores"; }
+  };
+  StoreWrapper& operator= (Store* instore){ ascii_store=instore; boost_store=nullptr; return *this; }
+  StoreWrapper& operator= (BoostStore* instore){ boost_store=instore; ascii_store=nullptr; return *this; }
+  StoreWrapper* operator-> () { return this; }
+  std::string StoreType(){
+    if(boost_store) return "boost";
+    if(ascii_store) return "ascii";
+    return "none";
+  }
+};
+
+static StoreWrapper activestore;
 
 static PyObject* GetStoreInt(PyObject *self, PyObject *args){
-  const char *command;
+  const char *command=nullptr;
   if (!PyArg_ParseTuple(args, "s", &command)) return NULL;
   int ret=0;
   activestore->Get(command,ret);
@@ -31,7 +115,7 @@ static PyObject* GetStoreInt(PyObject *self, PyObject *args){
 }
 
 static PyObject* GetStoreDouble(PyObject *self, PyObject *args){  
-  const char *command;
+  const char *command=nullptr;
   if (!PyArg_ParseTuple(args, "s", &command)) return NULL;
   double ret=0;
   activestore->Get(command,ret);
@@ -40,7 +124,7 @@ static PyObject* GetStoreDouble(PyObject *self, PyObject *args){
 }
 
 static PyObject* GetStoreString(PyObject *self, PyObject *args){
-  const char *command;
+  const char *command=nullptr;
   if (!PyArg_ParseTuple(args, "s", &command)) return NULL;
   std::string ret="";
   activestore->Get(command,ret);
@@ -62,7 +146,7 @@ template<typename T> PyObject* GetStoreVariable(std::string variablename, T temp
   /// get the format string describing the python type
   const char* python_type = typename_to_python_type.at(thetypename).c_str();
   // get the variable from the BoostStore
-  if(!isvector){
+  if(not isvector){
     if(isptr){
       // if the type in the BoostStore is actually a pointer to this type of object
       // we need to copy it to a temporary
@@ -103,11 +187,11 @@ template<typename T> PyObject* GetStoreVariable(std::string variablename, T temp
 template<>
 inline PyObject* GetStoreVariable<std::string>(std::string variablename, std::string tempvar, bool isptr, bool isvector){
   // get the variable from the BoostStore
-  if(!isvector){
+  if(not isvector){
     if(isptr){
       // if the type in the BoostStore is actually a pointer to this type of object
       // we need to copy it to a temporary
-      std::string* tempvar2;
+      std::string* tempvar2=nullptr;
       int get_ok = activestore->Get(variablename,tempvar2);
       if(not get_ok){
         std::cerr<<"PythonAPI::GetStoreVariable failed to get object from store!"<<std::endl;
@@ -280,9 +364,10 @@ inline PyObject* GetStoreVariable<std::string>(std::string variablename, std::st
 
 // generic get wrapper based on the type of variable found in the store
 static PyObject* GetStoreVariable(PyObject *self, PyObject *args){
-  const char* storename;
-  const char* variablename;
-  if (!PyArg_ParseTuple(args, "ss", &storename, &variablename)) return NULL;
+  const char* storename=nullptr;
+  const char* variablename=nullptr;
+  const char* variabletype=nullptr;
+  if (!PyArg_ParseTuple(args, "ss|s", &storename, &variablename, &variabletype)) return NULL;
   
   // Set the activestore pointer to the appropriate BoostStore
   // =========================================================
@@ -290,7 +375,7 @@ static PyObject* GetStoreVariable(PyObject *self, PyObject *args){
     // config variables are retrieved from a Store, not a BoostStore, so we don't have access to the
     // variable typename. On other other hand these variables are by definition passed through a text file,
     // so we can always retrieve them as a string
-    std::string tempvar;
+    std::string tempvar="";
     gconfig->Get(variablename,tempvar);
     // for convenience we can also try to see if it's numeric:
     try {
@@ -308,8 +393,10 @@ static PyObject* GetStoreVariable(PyObject *self, PyObject *args){
       // not a recognisable number: just return as string
       return Py_BuildValue("s", tempvar.c_str());
     }
-  }else if(strcmp(storename,"CStore")==0){
+  } else if(strcmp(storename,"CStore")==0){
     activestore= &(gstore->CStore);
+  } else if(strcmp(storename,"vars")==0){
+    activestore= &(gstore->vars);
   } else {
     if(gstore->Stores.count(storename)==0){
       std::cerr<<"PythonAPI::GetStoreVariable failed to find requested Store "<<storename<<std::endl;
@@ -320,17 +407,46 @@ static PyObject* GetStoreVariable(PyObject *self, PyObject *args){
   
   // get the data type of the requested variable
   // ===========================================
-  std::string thetypename = activestore->Type(variablename);
-  if(thetypename=="?"){
-    std::cerr<<"PythonAPI::GetStoreVariable failed to get object type from store!"
-             <<" Enable BoostStore type checking, or use a specialised Getter"<<std::endl;
-    return NULL;
-  } else if(thetypename=="Not in Store"){
-    std::cerr<<"PythonAPI::GetStoreVariable failed to get object type from store!"
-             <<" Variable not found in store!"<<std::endl;
-    return NULL;
+  std::string thetypename="";
+  std::string storetype = activestore->StoreType();
+  if(variabletype==nullptr){
+    if(strcmp(storetype.c_str(),"ascii")==0){
+      std::string errmsg = "PythonAPI::GetStoreVariable request to get a variable from store '"
+               +std::string(storename)+"', which is an ASCII store. For ASCII stores you must provide"
+               +" an additional argument specifying the variable datatype. Valid types are: {";
+      for(auto&& atype : typename_to_python_type){ errmsg += atype.first+", "; }
+      errmsg=errmsg.substr(0,errmsg.size()-2);
+      errmsg+= "}";
+      std::cerr<<errmsg<<std::endl;
+      return NULL;
+    }
+    thetypename = activestore->Type(variablename);
+    if(strcmp(thetypename.c_str(),"?")==0){
+      std::cerr<<"PythonAPI::GetStoreVariable failed to get object type from store!"
+               <<" Enable BoostStore type checking, or use a specialised Getter"<<std::endl;
+      return NULL;
+    } else if(strcmp(thetypename.c_str(),"Not in Store")==0){
+      std::cerr<<"PythonAPI::GetStoreVariable failed to get object type from store!"
+               <<" Variable not found in store!"<<std::endl;
+      return NULL;
+    }
+    thetypename = boost::core::demangle(thetypename.c_str());
+  } else {
+    if(strcmp(storetype.c_str(),"ascii")==0){
+      if(typename_to_python_type.count(variabletype)==0){
+        std::cerr<<"PythonAPI::GetStoreVariable failed, unrecognised data type '"
+                 <<variabletype<<"'"<<std::endl;
+        return NULL;
+      } else {
+        thetypename=variabletype;
+      }
+    } else {
+      // BoostStores may not hold a type map if type checking was disabled,
+      // so we let the user specify, but since BoostStores can hold all manner
+      // of things we cannot validate it. You have been warned!
+      thetypename=variabletype;
+    }
   }
-  thetypename = boost::core::demangle(thetypename.c_str());
   
   // check if it's a pointer
   // =======================
@@ -365,7 +481,7 @@ static PyObject* GetStoreVariable(PyObject *self, PyObject *args){
                    <<std::endl;
           return NULL;
     }
-    thetypename = (std::string)submatches[0];  // match 0 is 'whole match' or smthg
+    thetypename = (std::string)submatches[1];  // match 0 is 'whole match' or smthg
     */
     
     // boost edition because std::regex is broken in g++4.9
@@ -390,7 +506,7 @@ static PyObject* GetStoreVariable(PyObject *self, PyObject *args){
                        <<std::endl;
               return NULL;
         }
-        thetypename = (std::string)submatches[0];  // match 0 is 'whole match' or smthg
+        thetypename = (std::string)submatches[1];  // match 0 is 'whole match' or smthg
         //std::cout<<"element type is "<<thetypename<<std::endl;
     } catch (boost::regex_error& e){
         // if(bregex_err_strings.count(e.code())){
@@ -517,7 +633,7 @@ PyObject* SetStoreVariable(std::string variablename, PyObject* variableasobj, T 
 // specialization for String objects; they need to be retrieved via a char* but converted to std::string before storage
 template<>
 inline PyObject* SetStoreVariable<std::string>(std::string variablename, PyObject* variableasobj, std::string tempvar, bool isiterable){
-  char* tempchars;
+  char* tempchars=nullptr;
   if(isiterable){
     // construct a vector with the container elements
     PyObject* iterator = PyObject_GetIter(variableasobj);
@@ -624,10 +740,12 @@ static PyObject* SetStoreVariable(PyObject* self, PyObject* args){
   //std::cout << "PythonAPI::SetStoreVariable received object of type " << pythontypestring << std::endl;
   
   // set the active store:
-  const char *storename;
+  const char *storename=nullptr;
   if (!PyArg_ParseTuple(storenameasobj, "s", &storename)) return NULL;
   if(strcmp(storename,"CStore")==0){
     activestore= &(gstore->CStore);
+  } else if(strcmp(storename,"vars")==0){
+    activestore= &(gstore->vars);
   } else {
     if(gstore->Stores.count(storename)==0){
       std::cerr<<"PythonAPI::GetStoreVariable failed to find requested Store "<<storename<<std::endl;
@@ -637,25 +755,25 @@ static PyObject* SetStoreVariable(PyObject* self, PyObject* args){
   }
   
   // convert the variable name from Python object
-  const char *variablenamechar;
+  const char *variablenamechar=nullptr;
   if (!PyArg_ParseTuple(variablenameasobj, "s", &variablenamechar)) return NULL;
   std::string variablename(variablenamechar);
   
   // convert the element object to the appropriate data type and put it in the store
   if(pythontypestring=="int"){
-    int tempvar;
+    int tempvar=0;
     return SetStoreVariable(variablename, variableasobj, tempvar, isiterable);
   } else if(pythontypestring=="float"){
-    double tempvar;
+    double tempvar=0.;
     return SetStoreVariable(variablename, variableasobj, tempvar, isiterable);
   } else if(pythontypestring=="long"){
-    long long tempvar;
+    long long tempvar=0;
     return SetStoreVariable(variablename, variableasobj, tempvar, isiterable);
   } else if(pythontypestring=="str"){
-    std::string tempvar;
+    std::string tempvar="";
     return SetStoreVariable(variablename, variableasobj, tempvar, isiterable);
   } else if(pythontypestring=="bool"){
-    bool tempvar;
+    bool tempvar=false;
     return SetStoreVariable(variablename, variableasobj, tempvar, isiterable);
   } else {
     std::cerr<<"PythonAPI::SetStoreVariable unrecognised variable type "<<pythontypestring<<std::endl;
@@ -664,8 +782,8 @@ static PyObject* SetStoreVariable(PyObject* self, PyObject* args){
 }
 
 static PyObject* SetStoreInt(PyObject *self, PyObject *args){
-  const char *command;
-  int a;
+  const char *command=nullptr;
+  int a=0;
   if (!PyArg_ParseTuple(args, "si", &command, &a)) return NULL;
   activestore->Set(command,a);
   return Py_BuildValue("i", a);
@@ -673,8 +791,8 @@ static PyObject* SetStoreInt(PyObject *self, PyObject *args){
 }
 
 static PyObject* SetStoreDouble(PyObject *self, PyObject *args){
-  const char *command;
-  double b;
+  const char *command=nullptr;
+  double b=0;
   if (!PyArg_ParseTuple(args, "sd", &command, &b)) return NULL;  
   activestore->Set(command,b);
   return Py_BuildValue("d", b);
@@ -682,8 +800,8 @@ static PyObject* SetStoreDouble(PyObject *self, PyObject *args){
 }
 
 static PyObject* SetStoreString(PyObject *self, PyObject *args){
-  const char *command;
-  const char *s;
+  const char *command=nullptr;
+  const char *s=nullptr;
   if (!PyArg_ParseTuple(args, "ss", &command, &s)) return NULL;
   std::string a(s);
   activestore->Set(command,a);

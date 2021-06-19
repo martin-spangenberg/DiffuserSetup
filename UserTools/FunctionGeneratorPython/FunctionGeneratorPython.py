@@ -4,19 +4,19 @@ import pyvisa
 import time
 
 def Initialise(var):
-    global m_channel;   m_channel   = Store.GetStoreVariable("CStore", "funcgen_channel")
-    global m_shape;     m_shape     = Store.GetStoreVariable("CStore", "funcgen_shape")
-    global m_cycles;    m_cycles    = Store.GetStoreVariable("CStore", "funcgen_cycles")
-    global m_frequency; m_frequency = Store.GetStoreVariable("CStore", "funcgen_frequency")
-    global m_Vmin;      m_Vmin      = Store.GetStoreVariable("CStore", "funcgen_Vmin")
-    global m_Vmax;      m_Vmax      = Store.GetStoreVariable("CStore", "funcgen_Vmax")
-    global m_IPaddress; m_IPaddress = Store.GetStoreVariable("CStore", "funcgen_IPaddress")
+    global m_channel;   m_channel   = Store.GetStoreVariable("vars", "funcgen_channel", "int")
+    global m_shape;     m_shape     = Store.GetStoreVariable("vars", "funcgen_shape", "std::string")
+    global m_cycles;    m_cycles    = Store.GetStoreVariable("vars", "funcgen_cycles", "int")
+    global m_frequency; m_frequency = Store.GetStoreVariable("vars", "funcgen_frequency", "double")
+    global m_Vmin;      m_Vmin      = Store.GetStoreVariable("vars", "funcgen_Vmin", "double")
+    global m_Vmax;      m_Vmax      = Store.GetStoreVariable("vars", "funcgen_Vmax", "double")
+    global m_IP;        m_IP        = Store.GetStoreVariable("vars", "funcgen_IP", "std::string")
     global visaman;     visaman     = pyvisa.ResourceManager('@py')
 
     try:
-       global m_instrument; m_instrument = visaman.open_resource("TCPIP::"+m_IPaddress+"::INSTR")
+       global m_instrument; m_instrument = visaman.open_resource("TCPIP::"+m_IP+"::INSTR")
     except:
-       print("FunctionGeneratorPython: Cold not connect to instrument at IP "+m_IPaddress+"!!")
+       print("FunctionGeneratorPython: Could not connect to instrument at IP "+m_IP+"!!")
        return 0
 
     InitSetup()
@@ -34,7 +34,7 @@ def Finalise():
 
 def Execute():
 
-    state = Store.GetStoreVariable("CStore", "state")
+    state = Store.GetStoreVariable("vars", "state", "std::string")
 
     if state == "record":
         SendTrigger()
