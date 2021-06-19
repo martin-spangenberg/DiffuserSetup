@@ -36,7 +36,7 @@ python3 -m pip install --user matplotlib zmq msgpack pyvisa pyvisa-py
 ```
 The Python GUI also needs the SDL library:
 ```
->> sudo apt -y install libsdl2-dev
+sudo apt -y install libsdl2-dev
 ```
 
 ### Compile DiffuserSetup code:
