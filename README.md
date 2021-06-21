@@ -3,12 +3,17 @@ This software controls the WATCHMAN diffuser DAQ system. It is based on the Tool
 
 ## Setup on Ubuntu 20.04
 
+First install some compilers and libraries:
+```
+sudo apt -y install gcc g++ make cmake git binutils libx11-dev libxpm-dev libxft-dev libxext-dev libssl-dev
+```
+
 ### Install Spectrum ADC drivers:
 Install the PCIe card on the motherboard. Then get the driver source code from the DVD (not available online).
 ```
 tar -xvzf spcm4_linux_drvsource_2.17-17916.tgz
 cd spcm4_linuxkernel_source
-sudo chmod -x make_spcm4_linux_kerneldrv.sh
+sudo chmod +x make_spcm4_linux_kerneldrv.sh
 sudo ./make_spcm4_linux_kerneldrv.sh
 ```
 
@@ -21,27 +26,29 @@ sudo dpkg -i ximc-2.12.5/ximc/deb/libximc7-dev_2.12.5-1_amd64.deb
 ```
 
 ### Python dependencies:
-Install python3.6 (newer versions currently don’t work with the ToolDAQ code):
+Install GUI dependencies on existing Python (should be 3.8 to work with ROOT 6.24 installed later):
 ```
-sudo add-apt-repository ppa:deadsnakes/ppa
-sudo apt-get update
-sudo apt -y install python3.6 python3.6-dev
-sudo update-alternatives --install /usr/local/bin/python3 python3 /usr/bin/python3.6 20
-```
-Update pip and install packages:
-```
+sudo apt install python3-pip
 python3 -m pip install --user --upgrade pip
 python3 -m pip install --user -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-20.04 wxPython
-python3 -m pip install --user matplotlib zmq msgpack pyvisa pyvisa-py
+python3 -m pip install --user matplotlib zmq msgpack
 ```
 The Python GUI also needs the SDL library:
 ```
 sudo apt -y install libsdl2-dev
 ```
 
+Also install Python 3.6 (newer versions currently don’t work with the ToolDAQ code):
+```
+sudo add-apt-repository ppa:deadsnakes/ppa
+sudo apt-get update
+sudo apt -y install python3.6 python3.6-dev
+python3.6 -m pip install --user --upgrade pip
+python3.6 -m pip install pyvisa pyvisa-py
+```
+
 ### Compile DiffuserSetup code:
 ```
-sudo apt -y install git gcc g++ make cmake binutils libx11-dev libxpm-dev libxft-dev libxext-dev libssl-dev
 git clone http://github.com/martin-spangenberg/DiffuserSetup.git
 cd DiffuserSetup
 ./GetToolDAQ.sh
@@ -60,7 +67,6 @@ source Setup.sh
 ```
 
 ## Notes
-
 Python API bindings have changed in newer versions, hence Python 3.6 needs to be installed in order to compile and run the DAQ program. If the user wants to import the ROOT module in Python then version 3.8 must be used instead, since the ROOT 6 binary has been compiled for this version. Python 3.8 is installed by default on Ubuntu 20.04.
 
 ### Driver details

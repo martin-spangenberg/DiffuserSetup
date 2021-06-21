@@ -155,6 +155,8 @@ then
     git clone https://github.com/msgpack/msgpack-c.git msgpack-3.3.0
     cd msgpack-3.3.0
     git checkout cpp-3.3.0
+
+    cd ../
 fi
 
 cd ../
