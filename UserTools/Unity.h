@@ -1,9 +1,7 @@
-#include <FunctionGeneratorDummy.h>
 #include <HumidityReaderDummy.h>
 #include <HumidityReader.h>
 #include <PythonScript.h>
 #include <Scheduler.h>
-#include <ScopeDummy.h>
 #include <StepperMotorArduinoDummy.h>
 #include <StepperMotorArduino.h>
 #include <StepperMotorStandaDummy.h>
