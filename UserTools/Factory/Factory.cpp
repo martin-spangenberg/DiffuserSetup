@@ -13,5 +13,6 @@ if (tool=="StepperMotorArduino") ret=new StepperMotorArduino;
 if (tool=="StepperMotorStandaDummy") ret=new StepperMotorStandaDummy;
 if (tool=="StepperMotorStanda") ret=new StepperMotorStanda;
 if (tool=="Writer") ret=new Writer;
+  if (tool=="Digitizer") ret=new Digitizer;
 return ret;
 }

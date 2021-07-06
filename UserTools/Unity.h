@@ -7,3 +7,4 @@
 #include <StepperMotorStandaDummy.h>
 #include <StepperMotorStanda.h>
 #include <Writer.h>
+#include "Digitizer.h"
