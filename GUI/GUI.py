@@ -170,7 +170,7 @@ class RangePanel(wx.Panel):
         self.Bind(wx.EVT_BUTTON, lambda event: self.addRow(["0","0"], event), button_add)
         self.Bind(wx.EVT_BUTTON, lambda event: self.deleteRow(False, event), button_delete)
 
-        txt_stepsize = wx.StaticText(self, label="Step size")
+        txt_stepsize = wx.StaticText(self, label="Step size ")
         self.field_stepsize = wx.TextCtrl(self, value="1", size=(50,20), style=wx.TE_RIGHT)
 
         vbox = wx.BoxSizer(wx.VERTICAL)
@@ -180,11 +180,11 @@ class RangePanel(wx.Panel):
         hbox.Add(button_add)
         hbox.Add(button_delete)
         vbox.Add(hbox)
-        vbox.Add(wx.StaticLine(self, style=wx.LI_HORIZONTAL), 0, wx.EXPAND|wx.ALL, 10)
+        vbox.Add(wx.StaticLine(self, style=wx.LI_HORIZONTAL), 0, wx.EXPAND|wx.ALL, 20)
         stepbox = wx.BoxSizer(wx.HORIZONTAL)
         stepbox.Add(txt_stepsize)
         stepbox.Add(self.field_stepsize)
-        vbox.Add(stepbox, flag=wx.ALIGN_RIGHT)
+        vbox.Add(stepbox, flag=wx.ALIGN_LEFT)
 
         self.SetSizer(vbox)
 
@@ -282,7 +282,7 @@ class GUI(wx.Frame):
         # Plots and buttons
         ####################################################
 
-        self.plotpanel = PlotPanel(self, title="Waveforms", xlabel="Time", ylabel="Signal [V]", xlimits=[0,10000], ylimits=[-6,0])
+        self.plotpanel = PlotPanel(self, title="Waveforms", xlabel="Time", ylabel="Signal [V]", xlimits=[0,10000], ylimits=[-5,0])
         self.heatmappanel = HeatmapPanel(self, title="Waveform peak values",
                                          xlabel="Angle [°]", ylabel="Height [mm]", zlabel="Signal peak [V]")
 
@@ -291,45 +291,55 @@ class GUI(wx.Frame):
         self.button_start = wx.Button(self, wx.ID_ANY, "Start", size=(100,80))
         self.Bind(wx.EVT_BUTTON, self._startstopProgram, self.button_start)
 
-        self.textbox_angle = wx.StaticText(self, label="Current angle")
-        self.indicator_angle = wx.TextCtrl(self, style=wx.TE_READONLY)
-        self.textbox_ypos = wx.StaticText(self, label="Current y-pos")
-        self.indicator_ypos = wx.TextCtrl(self, style=wx.TE_READONLY)
+        # self.textbox_angle = wx.StaticText(self, label="Current angle")
+        # self.indicator_angle = wx.TextCtrl(self, style=wx.TE_READONLY)
+        # self.textbox_ypos = wx.StaticText(self, label="Current y-pos")
+        # self.indicator_ypos = wx.TextCtrl(self, style=wx.TE_READONLY)
 
-        self.angleRangePanel = RangePanel(self, title="Angle ranges (°)", height=150)
-        self.yRangePanel = RangePanel(self, title="Height ranges (mm)", height=150)
+        self.angleRangePanel = RangePanel(self, title="Angle ranges (°)", height=200)
+        self.yRangePanel = RangePanel(self, title="Height ranges (mm)", height=200)
 
         txt_size = (125,20)
 
         self.dict_output = {
-            "rootfilename"       : [wx.StaticText(self, label="File name"), wx.TextCtrl(self, size=txt_size)],
-            "treename"           : [wx.StaticText(self, label="TTree name"), wx.TextCtrl(self, size=txt_size)],
-            "ID_diffuser"        : [wx.StaticText(self, label="Diffuser ID"), wx.TextCtrl(self, size=txt_size)],
-            "ID_PMT"             : [wx.StaticText(self, label="PMT ID"), wx.TextCtrl(self, size=txt_size)],
-            "ID_PD"              : [wx.StaticText(self, label="Photodiode ID"), wx.TextCtrl(self, size=txt_size)],
-            "ID_lightsource"     : [wx.StaticText(self, label="Light source ID"), wx.TextCtrl(self, size=txt_size)],
-            "ID_experimentalist" : [wx.StaticText(self, label="Operator name"), wx.TextCtrl(self, size=txt_size)],
-            "notes"              : [wx.StaticText(self, label="Notes"), wx.TextCtrl(self, size=(txt_size[0],100), style=wx.TE_MULTILINE)],
+            "rootfilename"       : [wx.StaticText(self, label="File name "), wx.TextCtrl(self, size=txt_size)],
+            "treename"           : [wx.StaticText(self, label="TTree name "), wx.TextCtrl(self, size=txt_size)],
+            "ID_diffuser"        : [wx.StaticText(self, label="Diffuser ID "), wx.TextCtrl(self, size=txt_size)],
+            "ID_PMT"             : [wx.StaticText(self, label="PMT ID "), wx.TextCtrl(self, size=txt_size)],
+            "ID_PD"              : [wx.StaticText(self, label="Photodiode ID "), wx.TextCtrl(self, size=txt_size)],
+            "ID_lightsource"     : [wx.StaticText(self, label="Light source ID "), wx.TextCtrl(self, size=txt_size)],
+            "ID_experimentalist" : [wx.StaticText(self, label="Operator name "), wx.TextCtrl(self, size=txt_size)],
+            "notes"              : [wx.StaticText(self, label="Notes "), wx.TextCtrl(self, size=(txt_size[0],100), style=wx.TE_MULTILINE)],
         }
 
         self.dict_funcgen = {
-            "funcgen_channel"   : [wx.StaticText(self, label="Output channel"), wx.TextCtrl(self, size=txt_size)],
-            "funcgen_shape"     : [wx.StaticText(self, label="Shape"), wx.TextCtrl(self, size=txt_size)],
-            "funcgen_cycles"    : [wx.StaticText(self, label="Cycles"), wx.TextCtrl(self, size=txt_size)],
-            "funcgen_frequency" : [wx.StaticText(self, label="Frequency"), wx.TextCtrl(self, size=txt_size)],
-            "funcgen_Vmin"      : [wx.StaticText(self, label="Min output"), wx.TextCtrl(self, size=txt_size)],
-            "funcgen_Vmax"      : [wx.StaticText(self, label="Max output"), wx.TextCtrl(self, size=txt_size)],
+            "funcgen_channel"   : [wx.StaticText(self, label="Output channel "), wx.TextCtrl(self, size=txt_size)],
+            "funcgen_cycles"    : [wx.StaticText(self, label="Number of cycles "), wx.TextCtrl(self, size=txt_size)],
+            "funcgen_frequency" : [wx.StaticText(self, label="Frequency [Hz] "), wx.TextCtrl(self, size=txt_size)],
+            "funcgen_Vmin"      : [wx.StaticText(self, label="Min output [V] "), wx.TextCtrl(self, size=txt_size)],
+            "funcgen_Vmax"      : [wx.StaticText(self, label="Max output [V] "), wx.TextCtrl(self, size=txt_size)],
         }
 
         self.dict_devices = {
-            "linmotor_devicename" : [wx.StaticText(self, label="Linear motor device name"), wx.TextCtrl(self, size=txt_size)],
-            "linmotor_steps_unit" : [wx.StaticText(self, label="Linear motor steps/mm"), wx.TextCtrl(self, size=txt_size)],
-            "rotmotor_USBport"    : [wx.StaticText(self, label="Angular motor USB name"), wx.TextCtrl(self, size=txt_size)],
-            "rotmotor_steps_unit" : [wx.StaticText(self, label="Angular motor steps/°"), wx.TextCtrl(self, size=txt_size)],
-            "rotmotor_n_motor"    : [wx.StaticText(self, label="Angular motor number"), wx.TextCtrl(self, size=txt_size)],
-            "humid_USBport"       : [wx.StaticText(self, label="Humidity sensor USB name"), wx.TextCtrl(self, size=txt_size)],
-            "funcgen_IP"          : [wx.StaticText(self, label="Function generator IP"), wx.TextCtrl(self, size=txt_size)],
-            "scope_IP"            : [wx.StaticText(self, label="Scope IP"), wx.TextCtrl(self, size=txt_size)],
+            "linmotor_devicename" : [wx.StaticText(self, label="Linear motor device name "), wx.TextCtrl(self, size=txt_size)],
+            "rotmotor_USBport"    : [wx.StaticText(self, label="Angular motor USB name "), wx.TextCtrl(self, size=txt_size)],
+            "humid_USBport"       : [wx.StaticText(self, label="Humidity sensor USB name "), wx.TextCtrl(self, size=txt_size)],
+            "funcgen_IP"          : [wx.StaticText(self, label="Function generator IP "), wx.TextCtrl(self, size=txt_size)],
+        }
+
+        self.dict_digitizer = {
+            "digitizer_numSamples"         : [wx.StaticText(self, label="Number of samples "), wx.TextCtrl(self, size=txt_size)],
+            "digitizer_sampleRate"         : [wx.StaticText(self, label="Sample rate [Hz] "), wx.TextCtrl(self, size=txt_size)],
+            "digitizer_triggerLevel"       : [wx.StaticText(self, label="Trigger level [V] "), wx.TextCtrl(self, size=txt_size)],
+            "digitizer_inputRange"         : [wx.StaticText(self, label="Input range [V] "), wx.TextCtrl(self, size=txt_size)],
+            "digitizer_inputOffsetPercent" : [wx.StaticText(self, label="Input offset [%] "), wx.TextCtrl(self, size=txt_size)],
+        }
+
+        self.dict_other = {
+            "linmotor_steps_unit" : "1000",
+            "rotmotor_steps_unit" : "1000",
+            "rotmotor_n_motor"    : "0",
+            "funcgen_shape"       : "SQUARE",
         }
 
         # Visual layout
@@ -341,13 +351,6 @@ class GUI(wx.Frame):
         plotbox.Add(self.plotpanel, flag=wx.LEFT)
         #plotbox.Add(self.plotpanel2, flag=wx.RIGHT)
         plotbox.Add(self.heatmappanel, flag=wx.RIGHT)
-
-        ctrlbox = wx.BoxSizer(wx.HORIZONTAL) # Horizontal sizer for controls
-        ctrlbox.Add(self.button_start, flag=wx.LEFT)
-        ctrlbox.Add(self.textbox_angle)
-        ctrlbox.Add(self.indicator_angle)
-        ctrlbox.Add(self.textbox_ypos)
-        ctrlbox.Add(self.indicator_ypos)
 
         outputbox = wx.BoxSizer(wx.VERTICAL)
         title = wx.StaticText(self, label="Output")
@@ -376,17 +379,40 @@ class GUI(wx.Frame):
             sizer.AddMany(line)
             devicebox.Add(sizer, flag=wx.ALIGN_RIGHT)
 
+        digitizerbox = wx.BoxSizer(wx.VERTICAL)
+        title = wx.StaticText(self, label="Digitizer settings")
+        title.SetFont(wx.Font(-1, wx.DEFAULT, wx.NORMAL, wx.BOLD, 0, ""))
+        digitizerbox.Add(title, flag=wx.ALIGN_RIGHT)
+        for line in self.dict_digitizer.values():
+            sizer = wx.BoxSizer(wx.HORIZONTAL)
+            sizer.AddMany(line)
+            digitizerbox.Add(sizer, flag=wx.ALIGN_RIGHT)
+
         func_device_box = wx.BoxSizer(wx.VERTICAL)
         func_device_box.Add(funcgenbox, flag=wx.ALIGN_RIGHT)
         func_device_box.Add(wx.StaticLine(self, style=wx.LI_HORIZONTAL), 0, wx.EXPAND|wx.ALL, 10)
         func_device_box.Add(devicebox, flag=wx.ALIGN_RIGHT)
+        func_device_box.Add(wx.StaticLine(self, style=wx.LI_HORIZONTAL), 0, wx.EXPAND|wx.ALL, 10)
+        func_device_box.Add(digitizerbox, flag=wx.ALIGN_RIGHT)        
         func_device_box.AddSpacer(10)
+
+        rangebox = wx.BoxSizer(wx.HORIZONTAL)
+        rangebox.Add(self.angleRangePanel)
+        rangebox.Add(wx.StaticLine(self, style=wx.LI_VERTICAL), 0, wx.EXPAND|wx.ALL, 10)
+        rangebox.Add(self.yRangePanel)
+
+        ctrlbox = wx.BoxSizer(wx.VERTICAL) # Horizontal sizer for controls
+        ctrlbox.Add(rangebox)
+        ctrlbox.Add(wx.StaticLine(self, style=wx.LI_HORIZONTAL), 0, wx.EXPAND|wx.ALL, 10)
+        ctrlbox.Add(self.button_start, flag=wx.BOTTOM)
+        # ctrlbox.Add(self.textbox_angle)
+        # ctrlbox.Add(self.indicator_angle)
+        # ctrlbox.Add(self.textbox_ypos)
+        # ctrlbox.Add(self.indicator_ypos)
 
         configbox = wx.BoxSizer(wx.HORIZONTAL)
         configbox.AddSpacer(10)
-        configbox.Add(self.angleRangePanel)
-        configbox.Add(wx.StaticLine(self, style=wx.LI_VERTICAL), 0, wx.EXPAND|wx.ALL, 10)
-        configbox.Add(self.yRangePanel)
+        configbox.Add(ctrlbox)
         configbox.Add(wx.StaticLine(self, style=wx.LI_VERTICAL), 0, wx.EXPAND|wx.ALL, 10)
         configbox.Add(outputbox)
         configbox.Add(wx.StaticLine(self, style=wx.LI_VERTICAL), 0, wx.EXPAND|wx.ALL, 10)
@@ -396,8 +422,8 @@ class GUI(wx.Frame):
         vbox.Add(plotbox, flag=wx.TOP)
         vbox.AddSpacer(10)
         vbox.Add(configbox)
-        vbox.Add(wx.StaticLine(self, style=wx.LI_HORIZONTAL), 0, wx.EXPAND|wx.ALL, 10)
-        vbox.Add(ctrlbox, flag=wx.BOTTOM)
+        #vbox.Add(wx.StaticLine(self, style=wx.LI_HORIZONTAL), 0, wx.EXPAND|wx.ALL, 10)
+        #vbox.Add(ctrlbox, flag=wx.BOTTOM)
 
         self.SetSizerAndFit(vbox)
 
@@ -408,8 +434,8 @@ class GUI(wx.Frame):
             angle, ypos, waveform_PMT, waveform_PD = msgpack.unpackb(message, use_list=False)
             waveform_PMT = np.array(waveform_PMT)
             waveform_PD = np.array(waveform_PD)
-            self.indicator_angle.SetValue(str(angle))
-            self.indicator_ypos.SetValue(str(ypos))
+            # self.indicator_angle.SetValue(str(angle))
+            # self.indicator_ypos.SetValue(str(ypos))
             self.plotpanel.draw(waveform_PMT)
             self.heatmappanel.addPeak(angle, ypos, waveform_PMT)
 
@@ -422,8 +448,11 @@ class GUI(wx.Frame):
         config_dict["stepSizeAngle"] = str(self.angleRangePanel.getStepSize())
         config_dict["stepSizeY"] = str(self.yRangePanel.getStepSize())
 
-        for key, value in {**self.dict_output, **self.dict_funcgen, **self.dict_devices}.items():
+        for key, value in {**self.dict_output, **self.dict_funcgen, **self.dict_devices, **self.dict_digitizer}.items():
             config_dict[key] = value[1].GetValue()
+
+        for key, value in self.dict_other.items():
+            config_dict[key] = value
 
         return config_dict
 
@@ -455,7 +484,7 @@ class GUI(wx.Frame):
             elif key == "rangesY":
                 self.yRangePanel.setRangesFromConfig(value)
             else:
-                for idict in [self.dict_output, self.dict_funcgen, self.dict_devices]:
+                for idict in [self.dict_output, self.dict_funcgen, self.dict_devices, self.dict_digitizer]:
                     if key in idict:
                         idict[key][1].SetValue(value)
 
