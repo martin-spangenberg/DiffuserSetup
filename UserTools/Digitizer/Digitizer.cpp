@@ -16,15 +16,17 @@ bool Digitizer::Initialise(std::string configfile, DataModel &data)
   m_data->vars.Get("digitizer_inputOffsetPercent", m_inputOffsetPercent);
   m_data->vars.Get("digitizer_sampleRate", m_sampleRate);
 
-  m_numSamples = 10000; // Number of samples to keep per trigger event
-  m_numAverages = 1000; // Number of trigger events to average over
-  m_triggerLevel = 100; // Trigger level [mV]
-  m_inputRange = 2500; // Input range [mV]
-  m_inputOffsetPercent = -95;
-  m_sampleRate = 2.5*pow(10,9);
+  //m_numSamples = 10000; // Number of samples to keep per trigger event
+  //m_numAverages = 1000; // Number of trigger events to average over
+  //m_triggerLevel = 100; // Trigger level [mV]
+  //m_inputRange = 2500; // Input range [mV]
+  //m_inputOffsetPercent = -95;
+  //m_sampleRate = 2.5*pow(10,9);
 
   // FIFO mode buffer handling
-  lNotifySize = 4096 * ceil(m_numSamples * 2 / 4096.); // Can only collect samples in multiples of 4096
+  //lNotifySize = 4096 * ceil(m_numSamples * 2 / 4096.); // Can only collect samples in multiples of 4096
+  lNotifySize = 4096 * ceil(m_numSamples / 4096.); // Can only collect samples in multiples of 4096
+
   llBufferSize = lNotifySize * (m_numAverages + 2); // software (DMA) buffer size
   lAverageCount = 0; // Number of averages
 
@@ -39,16 +41,17 @@ bool Digitizer::Initialise(std::string configfile, DataModel &data)
   // Define the data buffers
   dataBlock = (int8*)pvAllocMemPageAligned((uint64)llBufferSize);
   averagePMT = new std::vector<double>(m_numSamples, 0);
-  averagePD  = new std::vector<double>(m_numSamples, 0);
-  if(!dataBlock || !averagePMT || !averagePD)
+  //averagePD  = new std::vector<double>(m_numSamples, 0);
+  //if(!dataBlock || !averagePMT || !averagePD)
+  if(!dataBlock)  
   {
     Log("Digitizer: Memory allocation failed!", 1, m_verbose);
     spcm_vClose(cardHandle);
     return false;
   }
 
-  // spcm_dwSetParam_i32(cardHandle, SPC_CHENABLE,         CHANNEL0);              // Just 1 channel enabled
-  spcm_dwSetParam_i32(cardHandle, SPC_CHENABLE,         CHANNEL0 | CHANNEL1);   // Channel 1 and 2 enabled  
+  spcm_dwSetParam_i32(cardHandle, SPC_CHENABLE,         CHANNEL0);              // Just 1 channel enabled
+  //spcm_dwSetParam_i32(cardHandle, SPC_CHENABLE,         CHANNEL0 | CHANNEL1);   // Channel 1 and 2 enabled  
 
   // Channel 0
   spcm_dwSetParam_i32(cardHandle, SPC_AMP0,             m_inputRange);          // Max value in symmetric input range [mV]
@@ -56,9 +59,9 @@ bool Digitizer::Initialise(std::string configfile, DataModel &data)
   spcm_dwSetParam_i32(cardHandle, SPC_ACDC0,            0);                     // Set DC coupling
 
   // Channel 1
-  spcm_dwSetParam_i32(cardHandle, SPC_AMP1,             m_inputRange);          // Max value in symmetric input range [mV]
-  spcm_dwSetParam_i32(cardHandle, SPC_OFFS1,            -m_inputOffsetPercent); // Percent input range offset
-  spcm_dwSetParam_i32(cardHandle, SPC_ACDC1,            0);                     // Set DC coupling
+  //spcm_dwSetParam_i32(cardHandle, SPC_AMP1,             m_inputRange);          // Max value in symmetric input range [mV]
+  //spcm_dwSetParam_i32(cardHandle, SPC_OFFS1,            -m_inputOffsetPercent); // Percent input range offset
+  //spcm_dwSetParam_i32(cardHandle, SPC_ACDC1,            0);                     // Set DC coupling
 
   spcm_dwSetParam_i32(cardHandle, SPC_CARDMODE,         SPC_REC_FIFO_MULTI);    // Multiple recording FIFO mode
   spcm_dwSetParam_i32(cardHandle, SPC_LOOPS,            0);                     // Endless
@@ -102,14 +105,14 @@ bool Digitizer::Execute()
 
       // Reset average vectors and count
       std::fill(averagePMT->begin(), averagePMT->end(), 0);
-      std::fill(averagePD->begin(), averagePD->end(), 0);
+      //std::fill(averagePD->begin(), averagePD->end(), 0);
       lAverageCount = 0;
 
-      for(int k=0; k<m_numAverages; ++k)
-      {
-        spcm_dwSetParam_i32(cardHandle, SPC_M2CMD, M2CMD_CARD_FORCETRIGGER);
-        usleep(1);
-      }
+      //for(int k=0; k<m_numAverages; ++k)
+      //{
+      //  spcm_dwSetParam_i32(cardHandle, SPC_M2CMD, M2CMD_CARD_FORCETRIGGER);
+      //  usleep(1);
+      //}
 
       // run the FIFO mode and loop through the data
       while(true)
@@ -134,8 +137,9 @@ bool Digitizer::Execute()
             // Add latest waveforms to average data
             for(int i=0; i<m_numSamples; ++i)
             {
-              averagePMT->at(i) += (double)dataBlock[llPCPos + 2*i];
-              averagePD->at(i)  += (double)dataBlock[llPCPos + 2*i + 1];
+              averagePMT->at(i) += (double)dataBlock[llPCPos + i];
+              //averagePMT->at(i) += (double)dataBlock[llPCPos + 2*i];
+              //averagePD->at(i)  += (double)dataBlock[llPCPos + 2*i + 1];
             }
 
             // free the buffer
@@ -162,17 +166,17 @@ bool Digitizer::Execute()
         }
       }
 
-      double scalefactor = m_inputRange * 0.001 / (128. * m_numAverages);
+      double scalefactor = m_inputRange * 0.001 / (127. * m_numAverages);
       double offset = m_inputRange * 0.001 * m_inputOffsetPercent * 0.01;
 
       for(int i=0; i<m_numSamples; ++i)
       {
         averagePMT->at(i) = averagePMT->at(i) * scalefactor + offset;
-        averagePD->at(i) = averagePD->at(i) * scalefactor + offset;      
+        //averagePD->at(i) = averagePD->at(i) * scalefactor + offset;      
       }
 
       m_data->waveform_PMT = *averagePMT;
-      m_data->waveform_PD  = *averagePD;
+      //m_data->waveform_PD  = *averagePD;
 
       auto stop = high_resolution_clock::now();
       auto duration = duration_cast<microseconds>(stop - start);
@@ -193,7 +197,7 @@ bool Digitizer::Finalise()
   Log("Digitizer: Finalising", 1, m_verbose);
   vFreeMemPageAligned(dataBlock, (uint64)llBufferSize);
   averagePMT->clear();
-  averagePD->clear();
+  //averagePD->clear();
   spcm_vClose(cardHandle);
 
   return true;
