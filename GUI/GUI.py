@@ -46,6 +46,16 @@ class PlotPanel(wx.Panel):
         self.background = self.canvas.copy_from_bbox(self.axes.bbox)
         self.Fit()
 
+    def setLimitsX(self, limits):
+        self.xlimits = limits 
+        self.canvas.draw()
+        self.Update()
+
+    def setLimitsY(self, limits):
+        self.ylimits = limits
+        self.canvas.draw()
+        self.Update()
+
     def drawEvent(self, event):
         if event.waveform is None:
            return
@@ -282,7 +292,7 @@ class GUI(wx.Frame):
         # Plots and buttons
         ####################################################
 
-        self.plotpanel = PlotPanel(self, title="Waveforms", xlabel="Time", ylabel="Signal [V]", xlimits=[0,10000], ylimits=[-5,0])
+        self.plotpanel = PlotPanel(self, title="Waveforms", xlabel="Time", ylabel="Signal [V]", xlimits=[0,10000], ylimits=[-1.0,1.0])
         self.heatmappanel = HeatmapPanel(self, title="Waveform peak values",
                                          xlabel="Angle [°]", ylabel="Height [mm]", zlabel="Signal peak [V]")
 
@@ -330,8 +340,8 @@ class GUI(wx.Frame):
         self.dict_digitizer = {
             "digitizer_numSamples"         : [wx.StaticText(self, label="Number of samples "), wx.TextCtrl(self, size=txt_size)],
             "digitizer_sampleRate"         : [wx.StaticText(self, label="Sample rate [Hz] "), wx.TextCtrl(self, size=txt_size)],
-            "digitizer_triggerLevel"       : [wx.StaticText(self, label="Trigger level [V] "), wx.TextCtrl(self, size=txt_size)],
-            "digitizer_inputRange"         : [wx.StaticText(self, label="Input range [V] "), wx.TextCtrl(self, size=txt_size)],
+            "digitizer_triggerLevel"       : [wx.StaticText(self, label="Trigger level [mV] "), wx.TextCtrl(self, size=txt_size)],
+            "digitizer_inputRange"         : [wx.StaticText(self, label="Input range [mV] "), wx.TextCtrl(self, size=txt_size)],
             "digitizer_inputOffsetPercent" : [wx.StaticText(self, label="Input offset [%] "), wx.TextCtrl(self, size=txt_size)],
         }
 
@@ -464,6 +474,12 @@ class GUI(wx.Frame):
                                      self.yRangePanel.getRangeExtremes(),
                                      self.angleRangePanel.getStepSize(),
                                      self.yRangePanel.getStepSize())
+
+        inputMax = int(self.dict_digitizer["digitizer_inputRange"][1].GetValue())
+        inputOffset = 0.01*int(self.dict_digitizer["digitizer_inputOffsetPercent"][1].GetValue())
+        numSamples = int(self.dict_digitizer["digitizer_numSamples"][1].GetValue())
+        self.plotpanel.setLimitsX([0,numSamples])
+        self.plotpanel.setLimitsY([(-1+inputOffset)*inputMax*0.001, (1+inputOffset)*inputMax*0.001])
 
         self.UITimer.Start(100)
 
