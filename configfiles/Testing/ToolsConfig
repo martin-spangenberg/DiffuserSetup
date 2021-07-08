@@ -2,7 +2,7 @@ scheduler     Scheduler                  configfiles/Testing/test.json
 motor_lin    StepperMotorStandaDummy         None
 motor_rot    StepperMotorArduinoDummy        None
 humidity     HumidityReaderDummy        None
-#funcgen_py   PythonScript               configfiles/Testing/FunctionGeneratorPythonConfig
+funcgen_py   PythonScript               configfiles/Testing/FunctionGeneratorPythonConfig
 #funcgen      FunctionGenerator          None
 #scope        Scope                      None
 digitizer     Digitizer                  None

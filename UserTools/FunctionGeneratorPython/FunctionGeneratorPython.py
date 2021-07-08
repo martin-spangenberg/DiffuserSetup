@@ -2,15 +2,22 @@
 import Store
 import pyvisa
 import time
+import sys
 
 def Initialise(var):
+
+    print("Python version:")
+    print(sys.version)
+
     global m_channel;   m_channel   = Store.GetStoreVariable("vars", "funcgen_channel", "int")
-    global m_shape;     m_shape     = Store.GetStoreVariable("vars", "funcgen_shape", "std::string")
+    #global m_shape;     m_shape     = Store.GetStoreVariable("vars", "funcgen_shape", "std::string")
+    global m_shape; m_shape = "SQUARE"
     global m_cycles;    m_cycles    = Store.GetStoreVariable("vars", "funcgen_cycles", "int")
     global m_frequency; m_frequency = Store.GetStoreVariable("vars", "funcgen_frequency", "double")
     global m_Vmin;      m_Vmin      = Store.GetStoreVariable("vars", "funcgen_Vmin", "double")
     global m_Vmax;      m_Vmax      = Store.GetStoreVariable("vars", "funcgen_Vmax", "double")
-    global m_IP;        m_IP        = Store.GetStoreVariable("vars", "funcgen_IP", "std::string")
+    #global m_IP;        m_IP        = Store.GetStoreVariable("vars", "funcgen_IP", "std::string")
+    global m_IP; m_IP = "137.205.188.34"
     global visaman;     visaman     = pyvisa.ResourceManager('@py')
 
     try:
@@ -39,48 +46,48 @@ def Execute():
     if state == "record":
         SendTrigger()
         #print("FunctionGeneratorPython: Sending trigger")
-        time.sleep(1)
+        #time.sleep(1)
 
     return 1
 
 def InitSetup():
     print("FunctionGeneratorPython: Initial setup - output mode: BURST, trigger mode: EXTERNAL")
-    instrument.write("SOURCE"+str(m_channel)+":BURST:STATE ON")
-    instrument.write("TRIGGER:SEQUENCE:SOURCE EXTERNAL")
+    m_instrument.write("SOURCE"+str(m_channel)+":BURST:STATE ON")
+    m_instrument.write("TRIGGER:SEQUENCE:SOURCE EXTERNAL")
 
 def ActivateChannel(channel):
     print("FunctionGeneratorPython: Setting output channel to "+str(channel))
     if channel in range(1,3):
         m_channel = channel
-        instrument.write("OUTPUT"+str(channel)+":STATE ON")
+        m_instrument.write("OUTPUT"+str(channel)+":STATE ON")
     else:
         print("FunctionGeneratorPython: Invalid channel number "+str(channel)+" selected")
 
 def SetShape(shape):
     print("FunctionGeneratorPython: Setting function shape to "+shape)
     m_shape = shape
-    instrument.write("SOURCE"+str(m_channel)+":FUNCTION:SHAPE "+shape)
+    m_instrument.write("SOURCE"+str(m_channel)+":FUNCTION:SHAPE "+shape)
 
 def SetNCycles(cycles):
     print("FunctionGeneratorPython: Setting cycles per burst to "+str(cycles))
     m_cycles = cycles
-    instrument.write("SOURCE"+str(m_channel)+":BURST_CYCLES "+str(m_cycles))
+    m_instrument.write("SOURCE"+str(m_channel)+":BURST_CYCLES "+str(m_cycles))
 
 def SetFrequencyHz(frequency):
     print("FunctionGeneratorPython: Setting function frequency to "+str(frequency)+" Hz")
     m_frequency = frequency
-    instrument.write("SOURCE"+str(m_channel)+":FREQUENCY "+str(m_frequency))
+    m_instrument.write("SOURCE"+str(m_channel)+":FREQUENCY "+str(m_frequency))
 
 def SetOutputVoltsMin(Vmin):
     print("FunctionGeneratorPython: Setting function minimum to "+str(Vmin)+" Volts")
     m_Vmin = Vmin
-    instrument.write("SOURCE"+str(m_channel)+":VOLTAGE:LEVEL:IMMEDIATE:LOW "+str(Vmin)+"V")
+    m_instrument.write("SOURCE"+str(m_channel)+":VOLTAGE:LEVEL:IMMEDIATE:LOW "+str(Vmin)+"V")
 
-def SetOutputVoltsMax(Vmin):
+def SetOutputVoltsMax(Vmax):
     print("FunctionGeneratorPython: Setting function maximum to "+str(Vmax)+" Volts")
     m_Vmax = Vmax
-    instrument.write("SOURCE"+str(m_channel)+":VOLTAGE:LEVEL:IMMEDIATE:HIGH "+str(Vmax)+"V")
+    m_instrument.write("SOURCE"+str(m_channel)+":VOLTAGE:LEVEL:IMMEDIATE:HIGH "+str(Vmax)+"V")
 
 def SendTrigger():
     print("FunctionGeneratorPython: Sending trigger")
-    instrument.write("*TRG")
+    m_instrument.write("*TRG")

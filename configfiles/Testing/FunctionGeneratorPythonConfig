@@ -5,3 +5,5 @@ PythonScript FunctionGeneratorPython
 InitialiseFunction Initialise
 ExecuteFunction Execute
 FinaliseFunction Finalise
+
+ConfigurationsFile configfiles/Testing/FunctionGeneratorPythonConfig2
