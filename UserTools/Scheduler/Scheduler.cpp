@@ -45,31 +45,20 @@ bool Scheduler::Initialise(std::string configfile, DataModel &data)
     file->close();
   }
 
-  //-----------------------------------------------------------------------
-  // Temporary fix until Python Tools can get variables from ASCII stores
-  //-----------------------------------------------------------------------
-  // std::string funcgen_IPaddress;
-  // std::string funcgen_channel;
-  // std::string funcgen_shape;
-  // std::string funcgen_cycles;
-  // std::string funcgen_frequency;
-  // std::string funcgen_Vmin;
-  // std::string funcgen_Vmax;
-  // m_data->vars.Get("funcgen_IPaddress", funcgen_IPaddress);
-  // m_data->vars.Get("funcgen_channel", funcgen_channel);
-  // m_data->vars.Get("funcgen_shape", funcgen_shape);
-  // m_data->vars.Get("funcgen_cycles", funcgen_cycles);
-  // m_data->vars.Get("funcgen_frequency", funcgen_frequency);
-  // m_data->vars.Get("funcgen_Vmin", funcgen_Vmin);
-  // m_data->vars.Get("funcgen_Vmax", funcgen_Vmax);
-  // m_data->CStore.Set("funcgen_IPaddress", funcgen_IPaddress);
-  // m_data->CStore.Set("funcgen_channel", funcgen_channel);
-  // m_data->CStore.Set("funcgen_shape", funcgen_shape);
-  // m_data->CStore.Set("funcgen_cycles", funcgen_cycles);    
-  // m_data->CStore.Set("funcgen_frequency", funcgen_frequency);
-  // m_data->CStore.Set("funcgen_Vmin", funcgen_Vmin);
-  // m_data->CStore.Set("funcgen_Vmax", funcgen_Vmax);
-  //-----------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  // Fix since Python Tools can't get std::string variables from ASCII stores
+  //-------------------------------------------------------------------------
+  std::string funcgen_IP;
+  m_data->vars.Get("funcgen_IP", funcgen_IP);
+  std::string delim = ".";
+  int IPnum;
+  for(int i=0; i<4; ++i)
+  {
+    IPnum = std::stoi(funcgen_IP.substr(0,funcgen_IP.find(delim)));
+    funcgen_IP.erase(0, funcgen_IP.find(delim) + delim.length());
+    m_data->vars.Set("funcgen_IP"+std::to_string(i), IPnum);
+  }
+  //-------------------------------------------------------------------------
 
   std::string angleRangesString;
   std::string yRangesString;
@@ -101,7 +90,7 @@ bool Scheduler::Initialise(std::string configfile, DataModel &data)
   stateName[state::end]      = "end";
 
   m_data->mode = state::idle;
-  m_data->vars.Set("state", stateName[m_data->mode]);
+  m_data->vars.Set("state", m_data->mode);
 
   return true;
 }
@@ -116,15 +105,15 @@ bool Scheduler::Execute()
     case state::idle:
     {
       m_data->mode = state::init;
-      m_data->vars.Set("state", stateName[m_data->mode]);
+      m_data->vars.Set("state", m_data->mode);
       break;
     }
 
     case state::init:
     {
       m_data->mode = state::move;
-      m_data->vars.Set("state", stateName[m_data->mode]);
-      
+      m_data->vars.Set("state", m_data->mode);
+
       m_data->coord_angle = m_iterAngle.GetPos();
       m_data->coord_y = m_iterY.GetPos();
       break;
@@ -133,7 +122,7 @@ bool Scheduler::Execute()
     case state::move:
     {
       m_data->mode = state::record;
-      m_data->vars.Set("state", stateName[m_data->mode]);
+      m_data->vars.Set("state", m_data->mode);
 
       break;
     }
@@ -141,7 +130,7 @@ bool Scheduler::Execute()
     case state::record:
     {
       m_data->mode = state::move;
-      m_data->vars.Set("state", stateName[m_data->mode]);
+      m_data->vars.Set("state", m_data->mode);
 
       zmq::message_t msg = ZMQCreateWaveformMessage(m_data->coord_angle, m_data->coord_y, m_data->waveform_PMT, m_data->waveform_PD);
       zmqsocket_send->send(msg);
@@ -156,7 +145,7 @@ bool Scheduler::Execute()
     {
       m_data->vars.Set("StopLoop",1);
       m_data->mode = state::end;
-      m_data->vars.Set("state", stateName[m_data->mode]);
+      m_data->vars.Set("state", m_data->mode);
       break;
     }
   }

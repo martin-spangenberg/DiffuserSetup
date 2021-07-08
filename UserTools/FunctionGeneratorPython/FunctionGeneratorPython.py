@@ -10,14 +10,19 @@ def Initialise(var):
     print(sys.version)
 
     global m_channel;   m_channel   = Store.GetStoreVariable("vars", "funcgen_channel", "int")
-    #global m_shape;     m_shape     = Store.GetStoreVariable("vars", "funcgen_shape", "std::string")
+    #global m_shape;     m_shape     = Store.GetStoreVariable("CStore", "funcgen_shape", "std::string")
     global m_shape; m_shape = "SQUARE"
     global m_cycles;    m_cycles    = Store.GetStoreVariable("vars", "funcgen_cycles", "int")
     global m_frequency; m_frequency = Store.GetStoreVariable("vars", "funcgen_frequency", "double")
     global m_Vmin;      m_Vmin      = Store.GetStoreVariable("vars", "funcgen_Vmin", "double")
     global m_Vmax;      m_Vmax      = Store.GetStoreVariable("vars", "funcgen_Vmax", "double")
-    #global m_IP;        m_IP        = Store.GetStoreVariable("vars", "funcgen_IP", "std::string")
-    global m_IP; m_IP = "137.205.188.34"
+    #global m_IP;        m_IP        = Store.GetStoreVariable("CStore", "funcgen_IPaddress", "std::string")
+    global m_IP; m_IP = ""
+    for i in range(4):
+       m_IP += str(Store.GetStoreVariable("vars", "funcgen_IP"+str(i), "int"))
+       if i < 3:
+          m_IP += "."
+    #global m_IP; m_IP = "137.205.188.34"
     global visaman;     visaman     = pyvisa.ResourceManager('@py')
 
     try:
@@ -41,9 +46,9 @@ def Finalise():
 
 def Execute():
 
-    state = Store.GetStoreVariable("vars", "state", "std::string")
+    state = Store.GetStoreVariable("vars", "state", "int")
 
-    if state == "record":
+    if state == 3:
         SendTrigger()
         #print("FunctionGeneratorPython: Sending trigger")
         #time.sleep(1)
