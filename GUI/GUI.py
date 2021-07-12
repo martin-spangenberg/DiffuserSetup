@@ -18,6 +18,7 @@ import msgpack
 
 
 PlotEvent, EVT_PLOTEVENT = wx.lib.newevent.NewEvent()
+InitEvent, EVT_INIT = wx.lib.newevent.NewEvent()
 
 class PlotPanel(wx.Panel):
     def __init__(self, parent, title="", xlabel="", ylabel="", xlimits=[0,1], ylimits=[0,1]):
@@ -36,7 +37,7 @@ class PlotPanel(wx.Panel):
         self.axes.set_title(title)
         self.axes.set_xlabel(self.xlabel)
         self.axes.set_ylabel(self.ylabel)
-        self.line, = self.axes.plot([0. for x in range(10000)], animated=True)
+        #self.line, = self.axes.plot([0. for x in range(10000)], animated=True)
         self.axes.set_xlim(self.xlimits)
         self.axes.set_ylim(self.ylimits)
         self.canvas = FigureCanvas(self, -1, self.figure)
@@ -183,18 +184,27 @@ class RangePanel(wx.Panel):
         txt_stepsize = wx.StaticText(self, label="Step size ")
         self.field_stepsize = wx.TextCtrl(self, value="1", size=(50,20), style=wx.TE_RIGHT)
 
+        self.button_moveto = wx.Button(self, wx.ID_ANY, "Move to", size=(85,20))
+        self.field_moveto = wx.TextCtrl(self, value="0", size=(50,20), style=wx.TE_RIGHT)
+
         vbox = wx.BoxSizer(wx.VERTICAL)
-        vbox.Add(titletxt)
-        vbox.Add(self.scrollWindow)
+        vbox.Add(titletxt, flag=wx.ALIGN_RIGHT)
+        vbox.Add(self.scrollWindow, flag=wx.ALIGN_RIGHT)
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(button_add)
         hbox.Add(button_delete)
-        vbox.Add(hbox)
+        vbox.Add(hbox, flag=wx.ALIGN_RIGHT)
         vbox.Add(wx.StaticLine(self, style=wx.LI_HORIZONTAL), 0, wx.EXPAND|wx.ALL, 20)
         stepbox = wx.BoxSizer(wx.HORIZONTAL)
         stepbox.Add(txt_stepsize)
         stepbox.Add(self.field_stepsize)
-        vbox.Add(stepbox, flag=wx.ALIGN_LEFT)
+        vbox.Add(stepbox, flag=wx.ALIGN_RIGHT)
+        vbox.Add(wx.StaticLine(self, style=wx.LI_HORIZONTAL), 0, wx.EXPAND|wx.ALL, 20)
+        movebox = wx.BoxSizer(wx.HORIZONTAL)
+        movebox.Add(self.button_moveto)
+        movebox.AddSpacer(10)
+        movebox.Add(self.field_moveto)
+        vbox.Add(movebox, flag=wx.ALIGN_RIGHT)
 
         self.SetSizer(vbox)
 
@@ -298,16 +308,18 @@ class GUI(wx.Frame):
 
         self.Bind(EVT_PLOTEVENT, self.plotpanel.drawEvent)
 
-        self.button_start = wx.Button(self, wx.ID_ANY, "Start", size=(100,80))
-        self.Bind(wx.EVT_BUTTON, self._startstopProgram, self.button_start)
+        self.buttonMain = wx.Button(self, wx.ID_ANY, "Initialise\ndevices", size=(100,80))
+        self.buttonMain.Bind(wx.EVT_BUTTON, self._initialiseProgram)
+
+        self.buttonRecordSingle = wx.Button(self, wx.ID_ANY, "Record\npulse", size=(100,80))
 
         # self.textbox_angle = wx.StaticText(self, label="Current angle")
         # self.indicator_angle = wx.TextCtrl(self, style=wx.TE_READONLY)
         # self.textbox_ypos = wx.StaticText(self, label="Current y-pos")
         # self.indicator_ypos = wx.TextCtrl(self, style=wx.TE_READONLY)
 
-        self.angleRangePanel = RangePanel(self, title="Angle ranges (°)", height=200)
-        self.yRangePanel = RangePanel(self, title="Height ranges (mm)", height=200)
+        self.angleRangePanel = RangePanel(self, title="Angle ranges (°)", height=150)
+        self.yRangePanel = RangePanel(self, title="Height ranges (mm)", height=150)
 
         txt_size = (125,20)
 
@@ -381,7 +393,7 @@ class GUI(wx.Frame):
             funcgenbox.Add(sizer, flag=wx.ALIGN_RIGHT)
 
         devicebox = wx.BoxSizer(wx.VERTICAL)
-        title = wx.StaticText(self, label="Device settings")
+        title = wx.StaticText(self, label="Device initialisation")
         title.SetFont(wx.Font(-1, wx.DEFAULT, wx.NORMAL, wx.BOLD, 0, ""))
         devicebox.Add(title, flag=wx.ALIGN_RIGHT)
         for line in self.dict_devices.values():
@@ -399,9 +411,9 @@ class GUI(wx.Frame):
             digitizerbox.Add(sizer, flag=wx.ALIGN_RIGHT)
 
         func_device_box = wx.BoxSizer(wx.VERTICAL)
-        func_device_box.Add(funcgenbox, flag=wx.ALIGN_RIGHT)
-        func_device_box.Add(wx.StaticLine(self, style=wx.LI_HORIZONTAL), 0, wx.EXPAND|wx.ALL, 10)
         func_device_box.Add(devicebox, flag=wx.ALIGN_RIGHT)
+        func_device_box.Add(wx.StaticLine(self, style=wx.LI_HORIZONTAL), 0, wx.EXPAND|wx.ALL, 10)
+        func_device_box.Add(funcgenbox, flag=wx.ALIGN_RIGHT)
         func_device_box.Add(wx.StaticLine(self, style=wx.LI_HORIZONTAL), 0, wx.EXPAND|wx.ALL, 10)
         func_device_box.Add(digitizerbox, flag=wx.ALIGN_RIGHT)        
         func_device_box.AddSpacer(10)
@@ -411,10 +423,14 @@ class GUI(wx.Frame):
         rangebox.Add(wx.StaticLine(self, style=wx.LI_VERTICAL), 0, wx.EXPAND|wx.ALL, 10)
         rangebox.Add(self.yRangePanel)
 
-        ctrlbox = wx.BoxSizer(wx.VERTICAL) # Horizontal sizer for controls
+        buttonbox = wx.BoxSizer(wx.HORIZONTAL)
+        buttonbox.Add(self.buttonMain)
+        buttonbox.Add(self.buttonRecordSingle)
+
+        ctrlbox = wx.BoxSizer(wx.VERTICAL)
         ctrlbox.Add(rangebox)
         ctrlbox.Add(wx.StaticLine(self, style=wx.LI_HORIZONTAL), 0, wx.EXPAND|wx.ALL, 10)
-        ctrlbox.Add(self.button_start, flag=wx.BOTTOM)
+        ctrlbox.Add(buttonbox, flag=wx.BOTTOM)
         # ctrlbox.Add(self.textbox_angle)
         # ctrlbox.Add(self.indicator_angle)
         # ctrlbox.Add(self.textbox_ypos)
@@ -424,9 +440,9 @@ class GUI(wx.Frame):
         configbox.AddSpacer(10)
         configbox.Add(ctrlbox)
         configbox.Add(wx.StaticLine(self, style=wx.LI_VERTICAL), 0, wx.EXPAND|wx.ALL, 10)
-        configbox.Add(outputbox)
-        configbox.Add(wx.StaticLine(self, style=wx.LI_VERTICAL), 0, wx.EXPAND|wx.ALL, 10)
         configbox.Add(func_device_box)
+        configbox.Add(wx.StaticLine(self, style=wx.LI_VERTICAL), 0, wx.EXPAND|wx.ALL, 10)
+        configbox.Add(outputbox)
         configbox.AddSpacer(10)
 
         vbox.Add(plotbox, flag=wx.TOP)
@@ -441,13 +457,14 @@ class GUI(wx.Frame):
         socks = dict(self.zmqpoller.poll(0))
         if self.socket_pull in socks and socks[self.socket_pull] == zmq.POLLIN:
             message = self.socket_pull.recv()
-            angle, ypos, waveform_PMT, waveform_PD = msgpack.unpackb(message, use_list=False)
+            mode, angle, ypos, waveform_PMT, waveform_PD = msgpack.unpackb(message, use_list=False)
             waveform_PMT = np.array(waveform_PMT)
             waveform_PD = np.array(waveform_PD)
             # self.indicator_angle.SetValue(str(angle))
             # self.indicator_ypos.SetValue(str(ypos))
             self.plotpanel.draw(waveform_PMT)
-            self.heatmappanel.addPeak(angle, ypos, waveform_PMT)
+            if mode == "multi":
+                self.heatmappanel.addPeak(angle, ypos, waveform_PMT)
 
     def _constructConfigDict(self):
         config_dict = {}
@@ -458,13 +475,54 @@ class GUI(wx.Frame):
         config_dict["stepSizeAngle"] = str(self.angleRangePanel.getStepSize())
         config_dict["stepSizeY"] = str(self.yRangePanel.getStepSize())
 
-        for key, value in {**self.dict_output, **self.dict_funcgen, **self.dict_devices, **self.dict_digitizer}.items():
+        for key, value in {**self.dict_output, **self.dict_funcgen, **self.dict_digitizer}.items():
             config_dict[key] = value[1].GetValue()
 
         for key, value in self.dict_other.items():
             config_dict[key] = value
 
         return config_dict
+
+    def _constructConfigDict_initialise(self):
+        config_dict = {}
+        for key, value in self.dict_devices.items():
+            config_dict[key] = value[1].GetValue()
+        return config_dict
+
+    def _constructConfigDict_linmotor(self):
+        config_dict = {}
+        config_dict["move_linmotor"] = self.yRangePanel.field_moveto.GetValue()
+        return config_dict
+
+    def _constructConfigDict_rotmotor(self):
+        config_dict = {}
+        config_dict["move_rotmotor"] = self.angleRangePanel.field_moveto.GetValue()
+        return config_dict
+
+    def _constructConfigDict_recordsingle(self):
+        config_dict = {}
+        config_dict["record_single"] = "1"
+        for key, value in {**self.dict_funcgen, **self.dict_digitizer}.items():
+            config_dict[key] = value[1].GetValue()
+
+        for key, value in self.dict_other.items():
+            config_dict[key] = value
+
+        return config_dict
+
+    def _initialiseProgram(self, event):
+        config_dict = self._constructConfigDict_initialise()
+        self.socket_pub.send_string(json.dumps(config_dict))
+        for value in self.dict_devices.values(): # Make device fields grey and uneditable
+            value[1].SetEditable(False)
+            value[1].SetBackgroundColour((200,200,200))
+        self.buttonMain.SetLabel("Start")
+        self.buttonMain.Unbind(wx.EVT_BUTTON)
+        self.buttonMain.Bind(wx.EVT_BUTTON, self._startstopProgram)
+        self.buttonRecordSingle.Bind(wx.EVT_BUTTON, self._recordSinglePulse)
+        self.yRangePanel.button_moveto.Bind(wx.EVT_BUTTON, self._moveLinMotor)
+        self.angleRangePanel.button_moveto.Bind(wx.EVT_BUTTON, self._moveRotMotor)
+        self.UITimer.Start(100)
 
     def _startstopProgram(self, event):
         config_dict = self._constructConfigDict()
@@ -481,7 +539,22 @@ class GUI(wx.Frame):
         self.plotpanel.setLimitsX([0,numSamples])
         self.plotpanel.setLimitsY([(-1+inputOffset)*inputMax*0.001, (1+inputOffset)*inputMax*0.001])
 
-        self.UITimer.Start(100)
+    def _moveLinMotor(self, event):
+        config_dict = self._constructConfigDict_linmotor()
+        self.socket_pub.send_string(json.dumps(config_dict))
+
+    def _moveRotMotor(self, event):
+        config_dict = self._constructConfigDict_rotmotor()
+        self.socket_pub.send_string(json.dumps(config_dict))
+
+    def _recordSinglePulse(self, event):
+        config_dict = self._constructConfigDict_recordsingle()
+        self.socket_pub.send_string(json.dumps(config_dict))
+        inputMax = int(self.dict_digitizer["digitizer_inputRange"][1].GetValue())
+        inputOffset = 0.01*int(self.dict_digitizer["digitizer_inputOffsetPercent"][1].GetValue())
+        numSamples = int(self.dict_digitizer["digitizer_numSamples"][1].GetValue())
+        self.plotpanel.setLimitsX([0,numSamples])
+        self.plotpanel.setLimitsY([(-1+inputOffset)*inputMax*0.001, (1+inputOffset)*inputMax*0.001])
 
     def _readConfigFile(self, file):
         try:

@@ -33,8 +33,16 @@ bool StepperMotorStandaDummy::Execute()
   switch (m_data->mode)
   {
     case state::move:
+    {
       Move(m_data->coord_y);
       break;
+    }
+
+    case state::move_lin:
+    {
+      Move(m_data->coord_y);
+      break;
+    }
   }
 
   return true;

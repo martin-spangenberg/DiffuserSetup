@@ -22,7 +22,11 @@ enum state
   idle,
   init,
   move,
+  move_lin,
+  move_rot,
   record,
+  record_single_init,
+  record_single,
   finalise,
   end
 };
@@ -41,6 +45,7 @@ class DataModel {
 
 
   Store vars; ///< This Store can be used for any variables. It is an inefficent ascii based storage    
+  Store tempstore;
   BoostStore CStore; ///< This is a more efficent binary BoostStore that can be used to store a dynamic set of inter Tool variables.
   std::map<std::string,BoostStore*> Stores; ///< This is a map of named BooStore pointers which can be deffined to hold a nammed collection of any tipe of BoostStore. It is usefull to store data that needs subdividing into differnt stores.
 

@@ -33,19 +33,17 @@ bool StepperMotorStanda::Execute()
   switch (m_data->mode)
   {
     case state::move:
-
+    {
       Move(m_data->coord_y);
-
-      //GetCurrentPosition(position);
-      //std::cout << "Position after move: " << position << std::endl;
-
       break;
+    }
+
+    case state::move_lin:
+    {
+      Move(m_data->coord_y);
+      break;
+    }
   }
-
-  
-
-  //Home();
-  //Move(20.);
 
   return true;
 }

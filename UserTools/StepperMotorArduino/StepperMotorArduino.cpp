@@ -30,8 +30,16 @@ bool StepperMotorArduino::Execute()
   switch (m_data->mode)
   {
     case state::move:
+    {
       Move(m_data->coord_angle);
       break;
+    }
+
+    case state::move_rot:
+    {
+      Move(m_data->coord_angle);
+      break;
+    }
   }
 
   return true;

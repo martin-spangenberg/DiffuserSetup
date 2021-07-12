@@ -30,7 +30,7 @@ class Scheduler: public Tool {
 
   std::vector<std::tuple<double,double>> ParseRanges(std::string rangesString);
   bool UpdateMotorCoords();
-  zmq::message_t ZMQCreateWaveformMessage(double angle, double ypos, std::vector<double> waveform_PMT, std::vector<double> waveform_PD);
+  zmq::message_t ZMQCreateWaveformMessage(std::string mode, double angle, double ypos, std::vector<double> waveform_PMT, std::vector<double> waveform_PD);
 
  private:
 
@@ -38,6 +38,8 @@ class Scheduler: public Tool {
   zmq::socket_t *zmqsocket_send;
   zmq::socket_t *zmqsocket_recv;
   zmq::context_t *context;
+
+  bool useGUI;
 
   state nextState, lastState;
   std::map<state, std::string> stateName;
