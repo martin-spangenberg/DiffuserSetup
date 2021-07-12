@@ -6,12 +6,12 @@ import sys
 
 def Initialise(var):
 
-    global m_channel;
-    global m_cycles;
-    global m_frequency;
-    global m_Vmin;
-    global m_Vmax;
-    global m_shape;
+    global m_channel; m_channel = 1
+    global m_cycles; m_cycles = 0
+    global m_frequency; m_frequency = 0
+    global m_Vmin; m_Vmin = 0
+    global m_Vmax; m_Vmax = 0
+    global m_shape; m_shape = ""
     global m_IP; m_IP = ""
     for i in range(4):
        m_IP += str(Store.GetStoreVariable("vars", "funcgen_IP"+str(i), "int"))
@@ -21,6 +21,7 @@ def Initialise(var):
 
     try:
        global m_instrument; m_instrument = visaman.open_resource("TCPIP::"+m_IP+"::INSTR")
+       print("FunctionGeneratorPython: Connected to device on IP "+m_IP)
     except:
        print("FunctionGeneratorPython: Could not connect to instrument at IP "+m_IP+"!!")
        return 0
@@ -55,45 +56,45 @@ def InitSetup():
     m_instrument.write("TRIGGER:SEQUENCE:SOURCE EXTERNAL")
 
 def ActivateChannel(channel):
-    if channel != m_channel:
-        if channel in range(1,3):
-            print("FunctionGeneratorPython: Setting output channel to "+str(channel))
-            m_instrument.write("OUTPUT"+str(m_channel)+":STATE OFF")
-            m_channel = channel
-            m_instrument.write("OUTPUT"+str(channel)+":STATE ON")
-            m_instrument.write("SOURCE"+str(channel)+":BURST:STATE ON")
-        else:
-            print("FunctionGeneratorPython: Invalid channel number "+str(channel)+" selected")
+    global m_channel
+    if channel in range(1,3):
+        print("FunctionGeneratorPython: Setting output channel to "+str(channel))
+        #m_instrument.write("OUTPUT"+str(m_channel)+":STATE OFF")
+        m_channel = channel
+        m_instrument.write("OUTPUT"+str(channel)+":STATE ON")
+        m_instrument.write("SOURCE"+str(channel)+":BURST:STATE ON")
+    else:
+        print("FunctionGeneratorPython: Invalid channel number "+str(channel)+" selected")
 
 def SetShape(shape):
-    if shape != m_shape:
-        print("FunctionGeneratorPython: Setting function shape to "+shape)
-        m_shape = shape
-        m_instrument.write("SOURCE"+str(m_channel)+":FUNCTION:SHAPE "+shape)
+    global m_shape
+    print("FunctionGeneratorPython: Setting function shape to "+shape)
+    m_shape = shape
+    m_instrument.write("SOURCE"+str(m_channel)+":FUNCTION:SHAPE "+shape)
 
 def SetNCycles(cycles):
-    if cycles != m_cycles:
-        print("FunctionGeneratorPython: Setting cycles per burst to "+str(cycles))
-        m_cycles = cycles
-        m_instrument.write("SOURCE"+str(m_channel)+":BURST_CYCLES "+str(m_cycles))
+    global m_cycles 
+    print("FunctionGeneratorPython: Setting cycles per burst to "+str(cycles))
+    m_cycles = cycles
+    m_instrument.write("SOURCE"+str(m_channel)+":BURST:NCYCLES "+str(cycles))
 
 def SetFrequencyHz(frequency):
-    if frequency != m_frequency
-        print("FunctionGeneratorPython: Setting function frequency to "+str(frequency)+" Hz")
-        m_frequency = frequency
-        m_instrument.write("SOURCE"+str(m_channel)+":FREQUENCY "+str(m_frequency))
+    global m_frequency
+    print("FunctionGeneratorPython: Setting function frequency to "+str(frequency)+" Hz")
+    m_frequency = frequency
+    m_instrument.write("SOURCE"+str(m_channel)+":FREQUENCY "+str(m_frequency))
 
 def SetOutputVoltsMin(Vmin):
-    if Vmin != m_Vmin:
-        print("FunctionGeneratorPython: Setting function minimum to "+str(Vmin)+" Volts")
-        m_Vmin = Vmin
-        m_instrument.write("SOURCE"+str(m_channel)+":VOLTAGE:LEVEL:IMMEDIATE:LOW "+str(Vmin)+"V")
+    global m_Vmin
+    print("FunctionGeneratorPython: Setting function minimum to "+str(Vmin)+" Volts")
+    m_Vmin = Vmin
+    m_instrument.write("SOURCE"+str(m_channel)+":VOLTAGE:LEVEL:IMMEDIATE:LOW "+str(Vmin)+"V")
 
 def SetOutputVoltsMax(Vmax):
-    if Vmax != m_Vmax:
-        print("FunctionGeneratorPython: Setting function maximum to "+str(Vmax)+" Volts")
-        m_Vmax = Vmax
-        m_instrument.write("SOURCE"+str(m_channel)+":VOLTAGE:LEVEL:IMMEDIATE:HIGH "+str(Vmax)+"V")
+    global m_Vmax
+    print("FunctionGeneratorPython: Setting function maximum to "+str(Vmax)+" Volts")
+    m_Vmax = Vmax
+    m_instrument.write("SOURCE"+str(m_channel)+":VOLTAGE:LEVEL:IMMEDIATE:HIGH "+str(Vmax)+"V")
 
 def SetAllVariables():
     channel   = Store.GetStoreVariable("vars", "funcgen_channel", "int")
@@ -103,12 +104,12 @@ def SetAllVariables():
     Vmax      = Store.GetStoreVariable("vars", "funcgen_Vmax", "double")
     shape = "SQUARE"
 
+    ActivateChannel(channel)
     SetShape(shape)
     SetNCycles(cycles)
     SetFrequencyHz(frequency)
     SetOutputVoltsMin(Vmin)
     SetOutputVoltsMax(Vmax)
-    ActivateChannel(channel)
 
 def SendTrigger():
     print("FunctionGeneratorPython: Sending trigger")

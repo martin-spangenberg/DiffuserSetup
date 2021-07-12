@@ -23,11 +23,19 @@ bool HumidityReader::Initialise(std::string configfile, DataModel &data)
 bool HumidityReader::Execute()
 {
 
-  float humidity = GetHumidity();
-  float temperature = GetTemperature();
-
-  std::cout << "Humidity = " << humidity << ", Temperature = " << temperature << std::endl;
-
+  switch(m_data->mode)
+  {
+    case state::record:
+    {
+      float humidity = GetHumidity();
+      float temperature = GetTemperature();
+      m_data->lab_humid = humidity;
+      m_data->lab_temp = temperature;
+      Log("HumidityReader: Humidity = "+std::to_string(humidity)+"%, Temperature = "+std::to_string(temperature)+"C", 1, m_verbose);
+      break;
+    }
+  }
+  
   return true;
 }
 
