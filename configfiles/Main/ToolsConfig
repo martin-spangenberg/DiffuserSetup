@@ -1,0 +1,8 @@
+scheduler    Scheduler                  None
+motor_lin    StepperMotorStandaDummy         None
+motor_rot    StepperMotorArduinoDummy        None
+humidity     HumidityReaderDummy             None
+#funcgen_py   PythonScript               configfiles/Main/FunctionGeneratorPythonConfig
+#digitizer    Digitizer                  None
+scope        ScopeDummy                 None
+writer       Writer                     None

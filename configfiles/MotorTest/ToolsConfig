@@ -1,2 +1,0 @@
-#rotating_motor StepperMotorArduino configfiles/MotorTest/RotatingMotorConfig
-linear_motor   StepperMotorStanda  configfiles/MotorTest/LinearMotorConfig

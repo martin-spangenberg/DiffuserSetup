@@ -1,7 +1,0 @@
-scheduler    Scheduler                  configfiles/Testing/test.json
-motor_lin    StepperMotorStanda         None
-motor_rot    StepperMotorArduino        None
-humidity     HumidityReader             None
-funcgen_py   PythonScript               configfiles/Testing/FunctionGeneratorPythonConfig
-digitizer    Digitizer                  None
-writer       Writer                     None

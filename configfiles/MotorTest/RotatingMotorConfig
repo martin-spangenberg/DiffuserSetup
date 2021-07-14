@@ -1,3 +1,0 @@
-USB_port        /dev/ttyACM0   # Name of USB port on the system
-n_motor         0              # Motor number set on Arduino
-steps_per_unit  1000           # Number of motor steps per chosen distance unit

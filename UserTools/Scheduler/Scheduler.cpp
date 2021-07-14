@@ -21,9 +21,6 @@ bool Scheduler::Initialise(std::string configfile, DataModel &data)
   stateName[state::finalise]           = "finalise";
   stateName[state::end]                = "end";
 
-  useGUI = false;
-  m_data->vars.Get("useGUI", useGUI);
-
   std::string socket_send;
   std::string socket_recv;
   m_data->vars.Get("zmqsocket_send", socket_send);
@@ -36,8 +33,28 @@ bool Scheduler::Initialise(std::string configfile, DataModel &data)
   zmqsocket_recv->connect(socket_recv);
   zmqsocket_recv->setsockopt(ZMQ_SUBSCRIBE, "", 0);
 
-  if(useGUI)
+  std::string cfgfile;
+  if(m_data->vars.Get("$1", cfgfile)) // Config file was specified on command line
   {
+    useGUI = false;
+    file = new std::ifstream(cfgfile.c_str());
+    if(!file->good())
+    {
+      Log("Scheduler: ERROR, could not find specified config file! Exiting", 1, m_verbose);
+      return false;
+    }
+    std::string config_str((std::istreambuf_iterator<char>(*file)),
+                           std::istreambuf_iterator<char>());
+    m_data->vars.JsonParser(config_str);
+    Log("Scheduler: Config loaded from file " + configfile, 1, m_verbose);
+    file->close();
+    std::string rootfilename;
+    if(m_data->vars.Get("$2", rootfilename))
+      m_data->vars.Set("rootfilename", rootfilename);
+  }
+  else // Wait for config from GUI
+  {
+    useGUI = true;
     Log("Scheduler: Waiting to receive initialise config from GUI", 1, 1);
     zmq::message_t config_msg;
     std::string config_str;
@@ -45,15 +62,6 @@ bool Scheduler::Initialise(std::string configfile, DataModel &data)
     config_str = (char*)config_msg.data();
     m_data->vars.JsonParser(config_str);
     Log("Scheduler: Got initialise config from GUI!", 1, 1);
-  }
-  else
-  {
-    file = new std::ifstream(configfile.c_str());
-    std::string config_str((std::istreambuf_iterator<char>(*file)),
-                           std::istreambuf_iterator<char>());
-    m_data->vars.JsonParser(config_str);
-    Log("Scheduler: Config loaded from file " + configfile, 1, m_verbose);
-    file->close();
   }
 
   //-------------------------------------------------------------------------
@@ -223,6 +231,7 @@ bool Scheduler::Execute()
     {
       if(useGUI)
       {
+        Log("Scheduler: Data collection finished. Returning to standby mode.", 1, m_verbose);
         m_data->mode = state::idle;
         m_data->vars.Set("state", m_data->mode);
       }
