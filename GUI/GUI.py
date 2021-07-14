@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
 from matplotlib.figure import Figure
 import matplotlib.patches as patches
-#from matplotlib.backends.backend_wx import NavigationToolbar2Wx
+from matplotlib.backends.backend_wx import NavigationToolbar2Wx
 #matplotlib.use('WXAgg')
 #from wx.lib.masked import NumCtrl
 import math
@@ -29,22 +29,23 @@ class PlotPanel(wx.Panel):
         self.xlimits = xlimits
         self.ylimits = ylimits
 
-        self.figure = Figure()
-        self.figure.subplots_adjust(left=0.16, bottom=0.14)
-        self.figure.set_size_inches(8/1.75,6/1.75)
+        figure = Figure()
+        figure.subplots_adjust(left=0.16, bottom=0.14)
+        figure.set_size_inches(8/1.75,6/1.75)
 
-        self.axes = self.figure.add_subplot(1, 1, 1)
+        self.axes = figure.add_subplot(1, 1, 1)
         self.axes.set_title(title)
         self.axes.set_xlabel(self.xlabel)
         self.axes.set_ylabel(self.ylabel)
-        #self.line, = self.axes.plot([0. for x in range(10000)], animated=True)
         self.axes.set_xlim(self.xlimits)
         self.axes.set_ylim(self.ylimits)
-        self.canvas = FigureCanvas(self, -1, self.figure)
-        self.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.sizer.Add(self.canvas, 1, wx.LEFT | wx.TOP | wx.GROW)
-        self.SetSizer(self.sizer)
-        self.background = self.canvas.copy_from_bbox(self.axes.bbox)
+        self.canvas = FigureCanvas(self, -1, figure)
+        navToolbar = NavigationToolbar2Wx(self.canvas)
+        navToolbar.DeleteToolByPos(8);navToolbar.DeleteToolByPos(6);navToolbar.DeleteToolByPos(2);navToolbar.DeleteToolByPos(1)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(self.canvas, 1, wx.LEFT | wx.TOP | wx.GROW)
+        sizer.Add(navToolbar)
+        self.SetSizer(sizer)
         self.Fit()
 
     def setLimitsX(self, limits):
