@@ -90,6 +90,7 @@ bool Scheduler::Execute()
         Log("Scheduler: Waiting to receive config from GUI", 1, 1);
         zmqsocket_recv->recv(&config_msg, 0);
         config_str = (char*)config_msg.data();
+        m_data->tempstore.Delete();
         m_data->tempstore.JsonParser(config_str);
 
         double coord;
@@ -112,6 +113,7 @@ bool Scheduler::Execute()
         else if(m_data->tempstore.Has("record_single"))
         {
           Log("Scheduler: Received record command from GUI", 1, m_verbose);
+          m_data->vars.JsonParser(config_str);
           m_data->mode = state::record_single_init;
           m_data->vars.Set("state", m_data->mode);
           break;

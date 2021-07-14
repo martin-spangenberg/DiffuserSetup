@@ -28,27 +28,32 @@ bool Digitizer::Execute()
     case state::init:
     {
       StartDMA();
+      break;
     }
 
     case state::record:
     {
       RecordWaveform();
+      break;
     }
 
     case state::record_single_init:
     {
       StartDMA();
+      break;
     }
 
     case state::record_single:
     {
       RecordWaveform();
       StopDMA();
+      break;
     }
 
     case::finalise:
     {
       StopDMA();
+      break;
     }
   }
 
@@ -129,10 +134,10 @@ bool Digitizer::StartDMA()
     return false;
   }
 
-
+  return true;
 }
 
-Digitizer::StopDMA()
+bool Digitizer::StopDMA()
 {
   // Send card stop command
   dwError = spcm_dwSetParam_i32(cardHandle, SPC_M2CMD, M2CMD_CARD_STOP | M2CMD_DATA_STOPDMA);
@@ -142,9 +147,11 @@ Digitizer::StopDMA()
   vFreeMemPageAligned(dataBlock, (uint64)llBufferSize);
   averagePMT->clear();
   averagePD->clear();
+  
+  return true;
 }
 
-Digitizer::RecordWaveform()
+bool Digitizer::RecordWaveform()
 {
   //auto start = high_resolution_clock::now();
 
@@ -225,5 +232,7 @@ Digitizer::RecordWaveform()
 
   // auto stop = high_resolution_clock::now();
   // auto duration = duration_cast<microseconds>(stop - start);
-  // std::cout << "Time taken: " << duration.count()/1000. << " milliseconds" << std::endl;  
+  // std::cout << "Time taken: " << duration.count()/1000. << " milliseconds" << std::endl;
+  
+  return true;
 }

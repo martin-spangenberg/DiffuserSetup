@@ -484,10 +484,29 @@ class GUI(wx.Frame):
 
         return config_dict
 
+    def _constructConfigDict_save(self):
+        config_dict = {}
+        angleRangesStr = [[str(x[0]), str(x[1])] for x in self.angleRangePanel.getRanges()]
+        yRangesStr = [[str(x[0]), str(x[1])] for x in self.yRangePanel.getRanges()]
+        config_dict["rangesAngle"] = "|".join([",".join(x) for x in angleRangesStr])
+        config_dict["rangesY"] = "|".join([",".join(x) for x in yRangesStr])
+        config_dict["stepSizeAngle"] = str(self.angleRangePanel.getStepSize())
+        config_dict["stepSizeY"] = str(self.yRangePanel.getStepSize())
+
+        for key, value in {**self.dict_output, **self.dict_funcgen, **self.dict_digitizer, **self.dict_devices}.items():
+            config_dict[key] = value[1].GetValue()
+
+        for key, value in self.dict_other.items():
+            config_dict[key] = value
+
+        return config_dict
+
     def _constructConfigDict_initialise(self):
         config_dict = {}
         for key, value in self.dict_devices.items():
             config_dict[key] = value[1].GetValue()
+        for key, value in self.dict_other.items():
+            config_dict[key] = value
         return config_dict
 
     def _constructConfigDict_linmotor(self):
@@ -498,6 +517,7 @@ class GUI(wx.Frame):
     def _constructConfigDict_rotmotor(self):
         config_dict = {}
         config_dict["move_rotmotor"] = self.angleRangePanel.field_moveto.GetValue()
+        print("Rotmotor angle value =", config_dict["move_rotmotor"])
         return config_dict
 
     def _constructConfigDict_recordsingle(self):
@@ -594,7 +614,7 @@ class GUI(wx.Frame):
                 wx.LogError("Cannot open file '%s'." % file)
 
     def saveConfigFile(self, event):
-        config_dict = self._constructConfigDict()
+        config_dict = self._constructConfigDict_save()
 
         with wx.FileDialog(self, "Save XYZ file", wildcard="config files (*.conf)|*.conf",
                        style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT) as fileDialog:
